@@ -8,6 +8,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
+      OLLAMA_URL: ${OLLAMA_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
     volumes:
       - ./logs:/var/www/html/logs
     ports:
@@ -37,6 +39,11 @@ volumes:
   dbdata:
 
 networks:
+  # Fixed subnet so the firewall rule that lets the app reach Ollama on the
+  # host (gateway 172.31.0.1) stays valid across recreates. See README.
   internal:
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
   proxy-net:
     external: true
