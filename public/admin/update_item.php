@@ -8,12 +8,13 @@ if (!isset($_SESSION['current_admin'])) {
 
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
+require_once __DIR__ . '/../../src/image_upload.php';
 
 csrf_verify();
 
 // Validate and sanitize input
 if (
-  isset($_POST['id'], $_POST['name'], $_POST['image_path'], $_POST['price'], $_POST['category'], $_POST['stock']) &&
+  isset($_POST['id'], $_POST['name'], $_POST['price'], $_POST['category'], $_POST['stock']) &&
   is_numeric($_POST['id']) &&
   is_numeric($_POST['price']) &&
   is_numeric($_POST['stock']) &&
@@ -23,7 +24,23 @@ if (
   $id = (int)$_POST['id'];
   $name = trim($_POST['name']);
   $description = trim($_POST['description'] ?? '');
-  $image_path = trim($_POST['image_path']);
+
+  $upload = save_menu_image($_FILES['image'] ?? ['error' => UPLOAD_ERR_NO_FILE]);
+  if (isset($upload['error'])) {
+    $_SESSION['message'] = $upload['error'];
+    header("Location: edit_item.php?id=$id");
+    exit;
+  }
+
+  $image_path = $upload['path'];
+  if ($image_path === null) {
+    $currentStmt = mysqli_prepare($conn, "SELECT image_path FROM menu_items WHERE id = ?");
+    mysqli_stmt_bind_param($currentStmt, "i", $id);
+    mysqli_stmt_execute($currentStmt);
+    mysqli_stmt_bind_result($currentStmt, $image_path);
+    mysqli_stmt_fetch($currentStmt);
+    mysqli_stmt_close($currentStmt);
+  }
   $price = floatval($_POST['price']);
   $old_price = ($_POST['old_price'] === '') ? null : floatval($_POST['old_price']);
   $category = trim($_POST['category']);

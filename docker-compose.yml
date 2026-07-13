@@ -12,6 +12,7 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL}
     volumes:
       - ./logs:/var/www/html/logs
+      - menu_uploads:/var/www/html/public/assets/menu
     ports:
       - "127.0.0.1:8081:80"
     depends_on:
@@ -37,6 +38,7 @@ services:
 
 volumes:
   dbdata:
+  menu_uploads:
 
 networks:
   # Fixed subnet so the firewall rule that lets the app reach Ollama on the
