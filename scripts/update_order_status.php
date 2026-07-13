@@ -17,6 +17,9 @@ while ($row = $result->fetch_assoc()) {
   $currentStatus = $row['orderStatus'];
   $deliveryType = strtolower($row['delivery'] ?? '');
   $lastUpdate = strtotime($row['lastStatusUpdate'] ?? '');
+  if ($lastUpdate === false) {
+    continue;
+  }
   $now = time();
   $minutesElapsed = ($now - $lastUpdate) / 60;
 
