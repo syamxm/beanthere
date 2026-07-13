@@ -3,6 +3,7 @@ session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/rate_limit.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $allowedReturns = ['cart.php', 'user_dashboard.php', 'recommendation.php', 'membership.php', 'voucher.php', 'user_order_tracking.php', 'edit_user_detail.php', 'user_verify.php'];
 
@@ -18,6 +19,8 @@ unset($_SESSION['message'], $_SESSION['success']);
 $username = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  csrf_verify();
+
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
 
@@ -99,6 +102,7 @@ $pageTitle = 'Log in - Bean There';
       <p class="text-foam text-sm mb-6">Log in to order and track deliveries.</p>
 
       <form action="" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+        <?= csrf_field() ?>
         <input type="hidden" name="return" value="<?= htmlspecialchars($return) ?>">
 
         <label for="username" class="block text-sm text-foam mb-1.5">Username</label>

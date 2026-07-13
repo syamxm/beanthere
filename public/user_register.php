@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
@@ -10,6 +11,8 @@ unset($_SESSION['message'], $_SESSION['success']);
 $username = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  csrf_verify();
+
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
   $confirmPassword = trim($_POST['confirm-password']);
@@ -74,6 +77,7 @@ $pageTitle = 'Sign up - Bean There';
       <p class="text-foam text-sm mb-6">Order ahead and earn member vouchers.</p>
 
       <form action="" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+        <?= csrf_field() ?>
         <label for="username" class="block text-sm text-foam mb-1.5">Username</label>
         <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" required
           class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
