@@ -74,6 +74,44 @@ $pageTitle = 'Bean There - Small-batch coffee';
   </section>
 
   <section class="max-w-6xl mx-auto px-4 py-16">
+    <div class="bg-roast border border-bean rounded-2xl p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <p class="text-caramel tracking-[0.3em] text-sm mb-3">BEAN THERE REWARDS</p>
+        <h2 class="text-2xl md:text-3xl font-bold mb-4">Every ringgit brews the next cup.</h2>
+        <p class="text-foam leading-relaxed mb-6">
+          Earn 1 point per RM1 spent, swap points for discount vouchers,
+          and level up from bronze to silver to gold to earn faster.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <?php if (isset($_SESSION['current_user'])): ?>
+            <a href="rewards.php" class="bg-caramel text-espresso font-semibold px-6 py-3 rounded-full hover:bg-crema transition">See my rewards</a>
+          <?php else: ?>
+            <a href="user_register.php" class="bg-caramel text-espresso font-semibold px-6 py-3 rounded-full hover:bg-crema transition">Join free &amp; start earning</a>
+            <a href="rewards.php" class="border border-caramel text-caramel px-6 py-3 rounded-full hover:bg-caramel hover:text-espresso transition">How it works</a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="bg-espresso border border-bean rounded-2xl px-3 py-6">
+          <i class="fa-solid fa-medal text-caramel text-2xl mb-2"></i>
+          <p class="font-semibold text-sm">Bronze</p>
+          <p class="text-foam text-xs">1x points</p>
+        </div>
+        <div class="bg-espresso border border-bean rounded-2xl px-3 py-6">
+          <i class="fa-solid fa-medal text-foam text-2xl mb-2"></i>
+          <p class="font-semibold text-sm">Silver</p>
+          <p class="text-foam text-xs">1.25x from 500 pts</p>
+        </div>
+        <div class="bg-espresso border border-bean rounded-2xl px-3 py-6">
+          <i class="fa-solid fa-medal text-crema text-2xl mb-2"></i>
+          <p class="font-semibold text-sm">Gold</p>
+          <p class="text-foam text-xs">1.5x from 1500 pts</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-4 py-16">
     <h2 class="text-2xl md:text-3xl font-bold mb-10 text-center">From bean to cup in three taps</h2>
     <div class="grid md:grid-cols-3 gap-8">
       <div class="text-center px-4">

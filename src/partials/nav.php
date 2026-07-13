@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__ . '/../settings.php';
+require_once __DIR__ . '/../loyalty.php';
 $isLoggedIn = isset($_SESSION['current_user']);
 $storeStatus = store_status();
+$navPoints = $isLoggedIn ? get_balance_for_nav($_SESSION['current_user']) : null;
 ?>
 <?php if (!$storeStatus['open']): ?>
   <div class="bg-caramel text-espresso text-sm font-semibold text-center px-4 py-2">
@@ -26,6 +28,9 @@ $storeStatus = store_status();
       <?php if ($isLoggedIn): ?>
         <a href="cart.php" class="text-crema hover:text-caramel"><i class="fa-solid fa-cart-shopping mr-1"></i>Cart</a>
         <a href="user_order_tracking.php" class="text-crema hover:text-caramel">Orders</a>
+        <a href="rewards.php" class="text-crema hover:text-caramel">
+          Rewards<?php if ($navPoints !== null): ?><span class="ml-1.5 bg-caramel text-espresso text-xs font-semibold px-2 py-0.5 rounded-full"><?= number_format($navPoints) ?> pts</span><?php endif; ?>
+        </a>
         <div class="relative">
           <button id="accountToggle" class="text-crema hover:text-caramel flex items-center gap-1">
             <i class="fa-solid fa-user mr-1"></i><?= htmlspecialchars($_SESSION['current_user']) ?>
