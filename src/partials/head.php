@@ -29,4 +29,4 @@ $assetPrefix = $assetPrefix ?? 'assets';
     }
   }
 </script>
-<link rel="stylesheet" href="<?= $assetPrefix ?>/style.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetPrefix) ?>/style.css">

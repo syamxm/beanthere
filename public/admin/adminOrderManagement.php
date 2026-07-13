@@ -100,7 +100,7 @@ $pageTitle = 'Orders - Bean There Admin';
 
                         foreach ($availableStatuses as $status) {
                           $selected = ($order['orderStatus'] === $status) ? 'selected' : '';
-                          echo "<option value=\"$status\" $selected>$status</option>";
+                          echo "<option value=\"" . htmlspecialchars($status) . "\" $selected>" . htmlspecialchars($status) . "</option>";
                         }
                         ?>
                       </select>

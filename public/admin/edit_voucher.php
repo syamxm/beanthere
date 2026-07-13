@@ -32,7 +32,7 @@ $error = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_verify();
   $code = $_POST['code'];
-  $discount = floatval($_POST['discount_value']);
+  $discount = max(0, min(100, floatval($_POST['discount_value'])));
   $valid_from = $_POST['valid_from'];
   $valid_until = $_POST['valid_until'];
   $status = $_POST['status'];
