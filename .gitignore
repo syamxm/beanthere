@@ -1,0 +1,9 @@
+.env
+logs/
+vendor/
+*.log
+status_log.txt
+voucher_log.txt
+beantheredb-fullData-backup.sql
+FrenchPressCoffeeTutorial.mp4
+SE Webpage (Updated-July).zip
