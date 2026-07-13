@@ -6,6 +6,7 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 $result = $conn->query("SELECT * FROM vouchers ORDER BY valid_from DESC");
 $vouchers = $result->fetch_all(MYSQLI_ASSOC);
@@ -168,7 +169,13 @@ $conn->close();
                 <a class="button" href="edit_voucher.php?voucherID=<?= $v['voucherID'] ?>">Edit</a>
 
               </td>
-              <td><a class="button" href='delete_voucher.php?voucherID=<?php echo $v['voucherID'] ?>' onclick="return confirm('Are you sure you want to delete this item?');">Delete</a></td>
+              <td>
+                <form method="POST" action="delete_voucher.php" onsubmit="return confirm('Are you sure you want to delete this voucher?');">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="voucherID" value="<?= $v['voucherID'] ?>">
+                  <button type="submit" class="button">Delete</button>
+                </form>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>

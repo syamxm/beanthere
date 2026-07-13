@@ -6,11 +6,13 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 $flash = $_SESSION['message'] ?? '';
 unset($_SESSION['message']);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  csrf_verify();
   $name = $_POST["name"];
   $image_path = $_POST["image_path"];
   $price = floatval($_POST["price"]);
@@ -209,6 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php endif; ?>
 
     <form method="POST">
+      <?= csrf_field() ?>
       <label for="name">Item Name:</label>
       <input type="text" name="name" id="name" required>
 

@@ -7,6 +7,9 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
+
+csrf_verify();
 
 // Validate and sanitize input
 if (

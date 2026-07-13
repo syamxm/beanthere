@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 // Fetch existing voucher
 if (!isset($_GET['voucherID'])) {
@@ -27,6 +28,7 @@ if (!$voucher) {
 
 // Handle update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  csrf_verify();
   $code = $_POST['code'];
   $discount = floatval($_POST['discount_value']);
   $valid_from = $_POST['valid_from'];
@@ -160,6 +162,7 @@ $conn->close();
   <div class="container">
     <h2>Update Voucher</h2>
     <form method="POST">
+      <?= csrf_field() ?>
       <label>Voucher Code:</label>
       <input type="text" name="code" value="<?= htmlspecialchars($voucher['code']) ?>" required>
 

@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_admin'])) {
 
 // Database connection
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 // Check if 'id' is set
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -193,6 +194,7 @@ if ($stmt) {
     <div class="admin-form">
       <h1>Edit Menu Item</h1>
       <form action="update_item.php" method="post">
+        <?php echo csrf_field() ?>
         <input type="hidden" name="id" value="<?php echo $id ?>" />
 
         <div class="form-group">
