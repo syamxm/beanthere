@@ -21,7 +21,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-5
         bg-espresso lg:bg-transparent border-b border-bean lg:border-0 px-4 py-4 lg:p-0 text-sm">
       <?php foreach ($adminLinks as $href => $label): ?>
-        <a href="<?= $href ?>" class="<?= $currentPage === $href ? 'text-caramel font-semibold' : 'text-crema' ?> hover:text-caramel"><?= $label ?></a>
+        <a href="<?= htmlspecialchars($href) ?>" class="<?= $currentPage === $href ? 'text-caramel font-semibold' : 'text-crema' ?> hover:text-caramel"><?= htmlspecialchars($label) ?></a>
       <?php endforeach; ?>
       <a href="admin_logout.php" class="text-foam hover:text-caramel">Log out</a>
     </div>

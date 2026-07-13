@@ -46,12 +46,12 @@ $sections = [
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <?php foreach ($sections as $title => $links): ?>
         <div class="bg-roast border border-bean rounded-2xl p-6">
-          <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4"><?= strtoupper($title) ?></h2>
+          <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4"><?= htmlspecialchars(strtoupper($title)) ?></h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <?php foreach ($links as [$href, $label, $icon]): ?>
-              <a href="<?= $href ?>" class="flex items-center gap-3 bg-espresso border border-bean rounded-xl px-4 py-3 hover:border-caramel transition">
-                <i class="fa-solid <?= $icon ?> text-caramel"></i>
-                <span class="text-sm"><?= $label ?></span>
+              <a href="<?= htmlspecialchars($href) ?>" class="flex items-center gap-3 bg-espresso border border-bean rounded-xl px-4 py-3 hover:border-caramel transition">
+                <i class="fa-solid <?= htmlspecialchars($icon) ?> text-caramel"></i>
+                <span class="text-sm"><?= htmlspecialchars($label) ?></span>
               </a>
             <?php endforeach; ?>
           </div>
