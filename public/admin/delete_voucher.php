@@ -20,9 +20,10 @@ if (isset($_POST['voucherID']) && is_numeric($_POST['voucherID'])) {
   $voucherID = (int)$_POST['voucherID'];
 
   // Delete query
-  $sql = "DELETE FROM vouchers WHERE voucherID = $voucherID";
+  $stmt = mysqli_prepare($conn, "DELETE FROM vouchers WHERE voucherID = ?");
+  mysqli_stmt_bind_param($stmt, "i", $voucherID);
 
-  if (mysqli_query($conn, $sql)) {
+  if (mysqli_stmt_execute($stmt)) {
     $_SESSION['message'] = "✅ Item deleted successfully.";
   } else {
     $_SESSION['message'] = "❌ Error deleting item.";
