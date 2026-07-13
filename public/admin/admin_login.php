@@ -3,6 +3,7 @@ session_start();
 
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/rate_limit.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
@@ -11,6 +12,8 @@ unset($_SESSION['message'], $_SESSION['success']);
 $username = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  csrf_verify();
+
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
 
@@ -88,6 +91,7 @@ $pageTitle = 'Admin login - Bean There';
     <p class="text-caramel font-bold tracking-[0.25em] text-center mb-6">BEANTHERE <span class="text-foam text-xs font-normal tracking-normal">ADMIN</span></p>
 
     <form action="" method="post" class="admin-form">
+      <?= csrf_field() ?>
       <label for="username">Username</label>
       <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" required>
 
