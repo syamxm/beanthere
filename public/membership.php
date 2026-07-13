@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $username = $_SESSION['current_user'];
 
@@ -30,6 +31,8 @@ $success = "";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $verified) {
+  csrf_verify();
+
   if ($status === null) {
     $stmt = $conn->prepare("INSERT INTO membership (userID) VALUES (?)");
     $stmt->bind_param("i", $userID);
@@ -92,11 +95,13 @@ $pageTitle = 'Membership - Bean There';
       <?php elseif ($status === 'revoked' || $status === 'rejected'): ?>
         <p class="text-red-400 mb-4">Your membership was <?= htmlspecialchars($status) ?>. You can reapply below.</p>
         <form method="post">
+          <?= csrf_field() ?>
           <button type="submit" class="bg-caramel text-espresso font-semibold px-5 py-2.5 rounded-lg hover:bg-crema transition">Reapply for membership</button>
         </form>
 
       <?php elseif (empty($success)): ?>
         <form method="post">
+          <?= csrf_field() ?>
           <button type="submit" class="bg-caramel text-espresso font-semibold px-5 py-2.5 rounded-lg hover:bg-crema transition">Apply for membership</button>
         </form>
       <?php endif; ?>

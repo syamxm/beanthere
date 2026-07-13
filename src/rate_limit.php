@@ -5,8 +5,7 @@ const RATE_LIMIT_WINDOW_SECONDS = 900;
 
 function rate_limit_identifier(string $username): string
 {
-  $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-  return mb_strtolower($username) . '|' . $ip;
+  return mb_strtolower($username);
 }
 
 /** Seconds remaining until the identifier can try again, or null if not locked. */
