@@ -9,8 +9,11 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  csrf_verify();
+
   $username = $_SESSION['current_user'];
   $itemID = $_POST['id'] ?? null;
 
