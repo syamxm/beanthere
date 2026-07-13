@@ -5,6 +5,8 @@ if (!isset($_SESSION['current_admin'])) {
   header('Location: admin_login.php');
   exit();
 }
+
+require_once __DIR__ . '/../../src/csrf.php';
 ?>
 
 <!DOCTYPE html>
@@ -181,7 +183,13 @@ if (!isset($_SESSION['current_admin'])) {
           <td><?php echo htmlspecialchars($bestWeather) ?></td>
           <td><?php echo $stock ?></td>
           <td><a href='edit_item.php?id=<?php echo $id ?>' class='button'>Edit</a></td>
-          <td><a href='delete_item.php?id=<?php echo $id ?>' class='button' onclick="return confirm('Are you sure you want to delete this item?');">Delete</a></td>
+          <td>
+            <form method="POST" action="delete_item.php" onsubmit="return confirm('Are you sure you want to delete this item?');">
+              <?php echo csrf_field() ?>
+              <input type="hidden" name="id" value="<?php echo $id ?>">
+              <button type="submit" class="button">Delete</button>
+            </form>
+          </td>
         </tr>
       <?php
       }

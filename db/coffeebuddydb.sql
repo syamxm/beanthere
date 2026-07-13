@@ -343,11 +343,18 @@ COMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 --
--- Seed accounts (dev defaults: admin/admin123, testuser/test123)
+-- Seed accounts. Passwords are NOT set here: the placeholder below is not a
+-- valid bcrypt hash, so these accounts cannot log in until you set a real one.
+-- Generate a hash and apply it after first boot:
+--
+--   docker exec beanthere-app php -r "echo password_hash('YOUR_PASSWORD', PASSWORD_DEFAULT), PHP_EOL;"
+--   docker exec -it beanthere-db mysql -ubeanthere -p coffeebuddydb \
+--     -e "UPDATE admins SET password='PASTE_HASH' WHERE username='admin';"
+--   (same for the users table)
 --
 
 INSERT INTO `admins` (`id`, `username`, `password`) VALUES
-(1, 'admin', '$2y$10$oqDWJi/8tTTmrK.402wVPuc.qEr8oDN6mETAbfOgeFkEH9qiUqrKS');
+(1, 'admin', 'SET_PASSWORD_MANUALLY');
 
 INSERT INTO `users` (`userID`, `username`, `password`, `phone_number`, `email`, `authentication_status`) VALUES
-(1, 'testuser', '$2y$10$fGs7RXiOXszeJei646FZE.viU3trjVQL9GK6gyW2zPuUcMpkEMq.a', '0123456789', 'testuser@example.com', 1);
+(1, 'testuser', 'SET_PASSWORD_MANUALLY', '0123456789', 'testuser@example.com', 1);

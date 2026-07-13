@@ -7,10 +7,17 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  header("Location: manage_voucher.php");
+  exit;
+}
+csrf_verify();
 
 // Check if 'id' is set and is a number
-if (isset($_GET['voucherID']) && is_numeric($_GET['voucherID'])) {
-  $voucherID = (int)$_GET['voucherID'];
+if (isset($_POST['voucherID']) && is_numeric($_POST['voucherID'])) {
+  $voucherID = (int)$_POST['voucherID'];
 
   // Delete query
   $sql = "DELETE FROM vouchers WHERE voucherID = $voucherID";

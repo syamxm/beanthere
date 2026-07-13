@@ -26,7 +26,9 @@ docker compose up -d --build
 Serves on `127.0.0.1:8081`. The database imports `db/*.sql` on first boot only;
 to reimport, drop the volume with `docker compose down -v`.
 
-Seeded accounts: `admin` / `admin123`, `testuser` / `test123`.
+Seeded accounts (`admin`, `testuser`) have no working password by default —
+set one manually after first boot; see the comment block at the bottom of
+`db/coffeebuddydb.sql`.
 
 ## Public access
 

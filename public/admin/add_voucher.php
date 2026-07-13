@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 // Flash messages
 $flash_success = $_SESSION['flash_success'] ?? '';
@@ -16,6 +17,7 @@ unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Enable exceptions
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  csrf_verify();
   $code = trim($_POST['code']);
   $discount = floatval($_POST['discount_value']);
   $valid_from = $_POST['valid_from'];
@@ -183,6 +185,7 @@ $conn->close();
     </div>
 
     <form method="POST">
+      <?= csrf_field() ?>
       <label for="code">Voucher Code:</label>
       <input type="text" name="code" id="code" required>
 

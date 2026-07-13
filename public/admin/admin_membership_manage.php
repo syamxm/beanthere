@@ -7,9 +7,11 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 // Process actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['membership_id'], $_POST['action'])) {
+  csrf_verify();
   $membership_id = intval($_POST['membership_id']);
   $action = $_POST['action'];
 
@@ -221,6 +223,7 @@ $conn->close();
           <td><?= htmlspecialchars($m['status']) ?></td>
           <td>
             <form method="POST">
+              <?= csrf_field() ?>
               <input type="hidden" name="membership_id" value="<?= $m['membershipID'] ?>">
               <button name="action" value="approve" class="approve-btn" onclick="return confirm('Accept this user\'s membership application?');">Approve</button>
               <button name="action" value="reject" class="reject-btn" onclick="return confirm('Reject this user\'s membership application?');">Reject</button>
@@ -250,6 +253,7 @@ $conn->close();
           <td><?= htmlspecialchars($m['status']) ?></td>
           <td>
             <form method="POST">
+              <?= csrf_field() ?>
               <input type="hidden" name="membership_id" value="<?= $m['membershipID'] ?>">
               <button name="action" value="revoke" class="revoke-btn" onclick="return confirm('Revoke this user\'s membership?');">Revoke</button>
             </form>

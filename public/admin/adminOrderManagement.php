@@ -7,9 +7,11 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['orderID'], $_POST['newStatus'])) {
+  csrf_verify();
   $orderID = intval($_POST['orderID']);
   $newStatus = $_POST['newStatus'];
 
@@ -195,6 +197,7 @@ foreach ($orders as $order) {
               <td><?= $order['lastStatusUpdate'] ?></td>
               <td>
                 <form method="POST">
+                  <?= csrf_field() ?>
                   <input type="hidden" name="orderID" value="<?= $order['orderID'] ?>">
                   <select name="newStatus">
                     <?php
