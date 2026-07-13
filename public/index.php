@@ -6,7 +6,7 @@ $featured = [];
 $result = $conn->query("SELECT id, name, description, image_path, price, category
                         FROM menu_items
                         WHERE category = 'menu' AND stock > 0
-                        ORDER BY price DESC LIMIT 3");
+                        ORDER BY sort_order, name LIMIT 3");
 while ($row = $result->fetch_assoc()) {
   $featured[] = $row;
 }

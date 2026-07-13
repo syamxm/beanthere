@@ -1,4 +1,13 @@
-<?php $isLoggedIn = isset($_SESSION['current_user']); ?>
+<?php
+require_once __DIR__ . '/../settings.php';
+$isLoggedIn = isset($_SESSION['current_user']);
+$storeStatus = store_status();
+?>
+<?php if (!$storeStatus['open']): ?>
+  <div class="bg-caramel text-espresso text-sm font-semibold text-center px-4 py-2">
+    <i class="fa-solid fa-store-slash mr-1"></i><?= htmlspecialchars($storeStatus['message'] ?: 'We are closed at the moment.') ?>
+  </div>
+<?php endif; ?>
 <nav class="sticky top-0 z-50 bg-espresso/95 backdrop-blur border-b border-bean">
   <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
     <a href="index.php" class="text-xl font-bold tracking-[0.25em] text-caramel">BEAN<span class="text-crema">THERE</span></a>

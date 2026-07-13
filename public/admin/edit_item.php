@@ -54,7 +54,7 @@ $pageTitle = 'Edit item - Bean There Admin';
   <main class="max-w-6xl mx-auto px-4 py-10">
     <h1 class="text-2xl font-bold mb-6 text-center">Edit item</h1>
 
-    <form action="update_item.php" method="post" class="admin-form">
+    <form action="update_item.php" method="post" enctype="multipart/form-data" class="admin-form">
       <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= $id ?>">
 
@@ -64,8 +64,9 @@ $pageTitle = 'Edit item - Bean There Admin';
       <label for="description">Description</label>
       <textarea name="description" id="description" rows="2"><?= htmlspecialchars($row['description'] ?? '') ?></textarea>
 
-      <label for="image_path">Image path</label>
-      <input type="text" id="image_path" name="image_path" value="<?= htmlspecialchars($row['image_path']) ?>" required>
+      <label for="image">Photo (leave empty to keep the current one)</label>
+      <img src="../<?= htmlspecialchars($row['image_path']) ?>" alt="Current photo" class="w-24 h-24 rounded-xl object-cover border border-bean mb-2">
+      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
 
       <label for="price">Current price (RM)</label>
       <input type="number" step="0.01" id="price" name="price" value="<?= htmlspecialchars($row['price']) ?>" required>

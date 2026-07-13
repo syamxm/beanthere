@@ -10,9 +10,17 @@ if (!isset($_SESSION['current_user'])) {
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/settings.php';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   csrf_verify();
+
+  if (!store_status()['open']) {
+    $_SESSION['message'] = "We're closed right now — ordering is paused until we reopen.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
+  }
 
   $username = $_SESSION['current_user'];
   $itemID = $_POST['id'] ?? null;

@@ -12,7 +12,7 @@ $flash = $_SESSION['message'] ?? '';
 unset($_SESSION['message']);
 
 $items = [];
-$result = mysqli_query($conn, "SELECT * FROM menu_items ORDER BY category, id");
+$result = mysqli_query($conn, "SELECT * FROM menu_items ORDER BY sort_order, name");
 while ($row = mysqli_fetch_assoc($result)) {
   $items[] = $row;
 }
@@ -46,12 +46,15 @@ $pageTitle = 'Items - Bean There Admin';
       <p class="flash-message"><?= htmlspecialchars($flash) ?></p>
     <?php endif; ?>
 
+    <p class="text-foam text-sm mb-4"><i class="fa-solid fa-up-down text-caramel mr-1"></i> Drag rows to change the menu order shown to customers. <span id="reorderStatus" class="text-caramel"></span></p>
+
     <?php if (empty($items)): ?>
       <p class="text-foam">No menu items found.</p>
     <?php else: ?>
       <div class="overflow-x-auto">
         <table class="admin-table">
           <tr>
+            <th></th>
             <th>ID</th>
             <th>Name</th>
             <th>Description</th>
@@ -66,7 +69,8 @@ $pageTitle = 'Items - Bean There Admin';
             <th colspan="2">Actions</th>
           </tr>
           <?php foreach ($items as $row): ?>
-            <tr>
+            <tr draggable="true" data-id="<?= (int)$row['id'] ?>" class="item-row">
+              <td class="cursor-grab text-foam"><i class="fa-solid fa-grip-vertical"></i></td>
               <td><?= (int)$row['id'] ?></td>
               <td class="whitespace-nowrap"><?= htmlspecialchars($row['name']) ?></td>
               <td class="max-w-56"><?= htmlspecialchars($row['description'] ?? '') ?></td>
@@ -92,6 +96,45 @@ $pageTitle = 'Items - Bean There Admin';
       </div>
     <?php endif; ?>
   </main>
+
+  <script>
+    const rows = document.querySelectorAll('tr.item-row');
+    const statusEl = document.getElementById('reorderStatus');
+    let dragged = null;
+
+    rows.forEach(row => {
+      row.addEventListener('dragstart', () => {
+        dragged = row;
+        row.classList.add('opacity-50');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('opacity-50');
+        dragged = null;
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        if (!dragged || dragged === row) return;
+        const rect = row.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        row.parentNode.insertBefore(dragged, after ? row.nextSibling : row);
+      });
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        saveOrder();
+      });
+    });
+
+    function saveOrder() {
+      const data = new FormData();
+      data.append('csrf_token', <?= json_encode(csrf_token()) ?>);
+      document.querySelectorAll('tr.item-row').forEach(row => data.append('order[]', row.dataset.id));
+      statusEl.textContent = 'Saving...';
+      fetch('reorder_items.php', { method: 'POST', body: data })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(() => { statusEl.textContent = 'Order saved.'; })
+        .catch(() => { statusEl.textContent = 'Could not save the order — refresh and try again.'; });
+    }
+  </script>
 </body>
 
 </html>

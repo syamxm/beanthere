@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_admin'])) {
 
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
+require_once __DIR__ . '/../../src/image_upload.php';
 
 $flash = $_SESSION['message'] ?? '';
 unset($_SESSION['message']);
@@ -15,7 +16,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   csrf_verify();
   $name = $_POST["name"];
   $description = trim($_POST["description"] ?? '');
-  $image_path = $_POST["image_path"];
+
+  $upload = save_menu_image($_FILES['image'] ?? ['error' => UPLOAD_ERR_NO_FILE]);
+  if (isset($upload['error'])) {
+    $_SESSION['message'] = $upload['error'];
+    header("Location: add_item.php");
+    exit();
+  }
+  if ($upload['path'] === null) {
+    $_SESSION['message'] = "Please choose an image for the item.";
+    header("Location: add_item.php");
+    exit();
+  }
+  $image_path = $upload['path'];
   $price = floatval($_POST["price"]);
   $old_price = ($_POST["old_price"] === '') ? null : floatval($_POST["old_price"]);
   $category = $_POST["category"];
@@ -77,7 +90,7 @@ $pageTitle = 'Add item - Bean There Admin';
       <p class="flash-message"><?= htmlspecialchars($flash) ?></p>
     <?php endif; ?>
 
-    <form method="POST" class="admin-form">
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
       <?= csrf_field() ?>
       <label for="name">Item name</label>
       <input type="text" name="name" id="name" required>
@@ -85,8 +98,8 @@ $pageTitle = 'Add item - Bean There Admin';
       <label for="description">Description</label>
       <textarea name="description" id="description" rows="2" placeholder="One short sentence shown on the menu card"></textarea>
 
-      <label for="image_path">Image path</label>
-      <input type="text" name="image_path" id="image_path" placeholder="assets/images/example.jpg" required>
+      <label for="image">Photo (JPEG, PNG or WebP, max 2 MB)</label>
+      <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/webp" required>
 
       <label for="price">Current price (RM)</label>
       <input type="number" step="0.01" name="price" id="price" required>
