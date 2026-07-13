@@ -21,9 +21,10 @@ if (isset($_POST['id']) && is_numeric($_POST['id'])) {
   $id = (int)$_POST['id'];
 
   // Delete query
-  $sql = "DELETE FROM menu_items WHERE id = $id";
+  $stmt = mysqli_prepare($conn, "DELETE FROM menu_items WHERE id = ?");
+  mysqli_stmt_bind_param($stmt, "i", $id);
 
-  if (mysqli_query($conn, $sql)) {
+  if (mysqli_stmt_execute($stmt)) {
     $_SESSION['message'] = "✅ Item deleted successfully.";
   } else {
     $_SESSION['message'] = "❌ Error deleting item.";

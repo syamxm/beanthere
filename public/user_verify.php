@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $username = $_SESSION['current_user'];
 $phone_number = "";
@@ -30,6 +31,8 @@ if ($stmt) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$authentication_status) {
+  csrf_verify();
+
   if (isset($_POST['verify_method']) && in_array($_POST['verify_method'], ['phone', 'email'])) {
     $update_sql = "UPDATE users SET authentication_status = TRUE WHERE username = ?";
     $update_stmt = mysqli_prepare($conn, $update_sql);
@@ -86,6 +89,7 @@ $pageTitle = 'Verify account - Bean There';
       <?php endif; ?>
 
       <form method="POST" action="user_verify.php" class="bg-roast border border-bean rounded-2xl p-6">
+        <?= csrf_field() ?>
         <?php if ($authentication_status): ?>
           <p class="text-green-400 font-semibold text-center">
             <i class="fa-solid fa-circle-check mr-1"></i> Your account is verified.

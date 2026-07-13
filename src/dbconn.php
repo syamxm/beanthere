@@ -8,12 +8,17 @@ if (is_readable($envFile)) {
   }
 }
 
-$conn = new mysqli(
-  getenv('DB_HOST') ?: 'localhost',
-  getenv('DB_USER') ?: 'root',
-  getenv('DB_PASS') ?: '',
-  getenv('DB_NAME') ?: 'coffeebuddydb'
-);
+$dbHost = getenv('DB_HOST');
+$dbUser = getenv('DB_USER');
+$dbPass = getenv('DB_PASS');
+$dbName = getenv('DB_NAME');
+
+if ($dbHost === false || $dbUser === false || $dbPass === false || $dbName === false) {
+  http_response_code(500);
+  die("Database configuration missing.");
+}
+
+$conn = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
 if ($conn->connect_error) {
   http_response_code(500);
   die("Database connection failed.");
