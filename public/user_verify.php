@@ -74,7 +74,10 @@ $pageTitle = 'Verify account - Bean There';
   <main class="grow flex items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
       <h1 class="text-2xl font-bold mb-2">Verify your account</h1>
-      <p class="text-foam text-sm mb-6">Verified accounts can apply for membership and earn vouchers.</p>
+      <p class="text-foam text-sm mb-2">Verified accounts can apply for membership and earn vouchers.</p>
+      <p class="inline-flex items-center gap-1.5 text-xs text-foam bg-bean/40 border border-bean rounded-full px-3 py-1 mb-6">
+        <i class="fa-solid fa-flask text-caramel"></i> Demo — no OTP or email is actually sent, verification is instant.
+      </p>
 
       <?php if (!empty($flash_success)): ?>
         <p class="text-green-400 text-sm mb-4"><?= htmlspecialchars($flash_success) ?></p>

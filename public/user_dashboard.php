@@ -3,6 +3,10 @@ session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
 
+$flashMessage = $_SESSION['message'] ?? '';
+$flashSuccess = $_SESSION['success'] ?? false;
+unset($_SESSION['message'], $_SESSION['success']);
+
 $drinks = [];
 $result = $conn->query("SELECT id, name, description, image_path, price, old_price, stock, roast_level, caffeine_level, drink_type
                         FROM menu_items WHERE category = 'menu' ORDER BY price ASC");
@@ -47,6 +51,9 @@ $pageTitle = 'Menu - Bean There';
   <div class="max-w-6xl mx-auto px-4 pt-12">
     <h1 class="text-3xl md:text-4xl font-bold mb-2">The menu</h1>
     <p class="text-foam mb-4">Every drink made to order. Not sure? <a href="recommendation.php" class="text-caramel underline hover:text-crema">Let us recommend one</a>.</p>
+    <?php if (!empty($flashMessage)): ?>
+      <p class="text-sm mb-4 <?= $flashSuccess ? 'text-green-400' : 'text-red-400' ?>"><?= htmlspecialchars($flashMessage) ?></p>
+    <?php endif; ?>
   </div>
 
   <section id="menu" class="max-w-6xl mx-auto px-4 py-8">

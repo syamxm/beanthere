@@ -132,13 +132,19 @@ $pageTitle = 'Customise - Bean There';
         <span class="text-xl font-bold text-caramel">RM <span id="totalPrice"><?= number_format($item['price'], 2) ?></span></span>
       </div>
 
-      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-4">Add to cart</button>
+      <button type="submit" id="addToCartBtn" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-4 disabled:opacity-60 disabled:cursor-not-allowed">Add to cart</button>
     </form>
   </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 
   <script>
+    document.querySelector('form[action="add_to_cart.php"]').addEventListener('submit', function () {
+      var btn = document.getElementById('addToCartBtn');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+    });
+
     document.addEventListener("DOMContentLoaded", function () {
       const basePrice = <?= json_encode((float)$item['price']) ?>;
       const totalPriceElem = document.getElementById("totalPrice");

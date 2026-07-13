@@ -15,7 +15,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $itemID = $_POST['id'] ?? null;
 
   if (!is_numeric($itemID)) {
-    die("Invalid item ID.");
+    $_SESSION['message'] = "Invalid item — please try again from the menu.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
   }
 
   // Get user ID from username
@@ -28,7 +31,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $userQuery->close();
 
   if (!$userID) {
-    die("User not found.");
+    $_SESSION['message'] = "We couldn't find your account — please log in again.";
+    $_SESSION['success'] = false;
+    header("Location: user_login.php?return=user_dashboard.php");
+    exit;
   }
 
   // Get item details, price always from DB
@@ -40,7 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $categoryQuery->close();
 
   if (!$found) {
-    die("Item not found.");
+    $_SESSION['message'] = "That item is no longer available.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
   }
 
   if ($category === "menu") {
@@ -76,18 +85,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("ssdii", $userID, $name, $basePrice, $qty, $itemID);
   } else {
-    die("Invalid category.");
+    $_SESSION['message'] = "That item can't be added to the cart.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
   }
 
   // Execute insert
   if ($stmt->execute()) {
     header("Location: cart.php");
     exit;
-  } else {
-    echo "Error adding to cart.";
   }
 
   $stmt->close();
+  $_SESSION['message'] = "Something went wrong adding that to your cart — please try again.";
+  $_SESSION['success'] = false;
+  header("Location: user_dashboard.php");
+  exit;
 }
 
 $conn->close();

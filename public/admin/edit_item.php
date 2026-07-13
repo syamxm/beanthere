@@ -68,10 +68,10 @@ $pageTitle = 'Edit item - Bean There Admin';
       <input type="text" id="image_path" name="image_path" value="<?= htmlspecialchars($row['image_path']) ?>" required>
 
       <label for="price">Current price (RM)</label>
-      <input type="number" step="0.01" id="price" name="price" value="<?= $row['price'] ?>" required>
+      <input type="number" step="0.01" id="price" name="price" value="<?= htmlspecialchars($row['price']) ?>" required>
 
       <label for="old_price">Old price (RM, optional)</label>
-      <input type="number" step="0.01" id="old_price" name="old_price" value="<?= $row['old_price'] ?>">
+      <input type="number" step="0.01" id="old_price" name="old_price" value="<?= htmlspecialchars($row['old_price'] ?? '') ?>">
 
       <label for="category">Category</label>
       <select id="category" name="category" onchange="toggleAttributes()">

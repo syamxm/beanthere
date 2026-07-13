@@ -115,12 +115,12 @@ $pageTitle = 'Cart - Bean There';
             if (!empty($item['toppings'])) $details[] = "Toppings: " . $item['toppings'];
           ?>
             <div class="cart-item bg-roast border border-bean rounded-2xl p-4 flex flex-wrap items-center gap-4 cursor-pointer transition"
-              id="item-<?= $index ?>" data-cartid="<?= $item['cartID'] ?>">
+              id="item-<?= $index ?>" data-cartid="<?= (int)$item['cartID'] ?>">
               <input type="checkbox" id="check-<?= $index ?>" onchange="updateSummary()"
                 class="accent-[#c49b63] w-5 h-5 shrink-0">
               <img src="<?= htmlspecialchars($item['image_path']) ?>" alt=""
                 class="w-14 h-14 rounded-xl object-cover border border-bean shrink-0">
-              <span class="item-info grow min-w-40" data-price="<?= $item['total'] ?>" data-qty="<?= $item['qty'] ?>">
+              <span class="item-info grow min-w-40" data-price="<?= (float)$item['total'] ?>" data-qty="<?= (int)$item['qty'] ?>">
                 <span class="font-semibold block"><?= htmlspecialchars($item['name']) ?></span>
                 <?php if (!empty($details)): ?>
                   <span class="text-foam text-xs block"><?= htmlspecialchars(implode(' · ', $details)) ?></span>
@@ -129,18 +129,18 @@ $pageTitle = 'Cart - Bean There';
               </span>
               <div class="flex items-center gap-2">
                 <form method="POST" class="inline">
-                  <input type="hidden" name="cart_id" value="<?= $item['cartID'] ?>">
+                  <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="decrease">
                   <button type="submit" class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold">−</button>
                 </form>
-                <span class="w-6 text-center"><?= $item['qty'] ?></span>
+                <span class="w-6 text-center"><?= (int)$item['qty'] ?></span>
                 <form method="POST" class="inline">
-                  <input type="hidden" name="cart_id" value="<?= $item['cartID'] ?>">
+                  <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="increase">
                   <button type="submit" <?= $item['qty'] >= $item['stock'] ? 'disabled class="w-8 h-8 rounded-lg bg-bean text-foam opacity-50 cursor-not-allowed font-bold"' : 'class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold"' ?>>+</button>
                 </form>
                 <form method="POST" class="inline ml-1">
-                  <input type="hidden" name="cart_id" value="<?= $item['cartID'] ?>">
+                  <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="remove">
                   <button type="submit" onclick="return confirm('Remove this item from your cart?')"
                     class="w-8 h-8 rounded-lg text-red-400 border border-red-400/40 hover:bg-red-400 hover:text-espresso transition" aria-label="Remove item">×</button>
@@ -159,8 +159,8 @@ $pageTitle = 'Cart - Bean There';
               class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
               <option value="0" data-discount="0">No voucher</option>
               <?php foreach ($vouchers as $v): ?>
-                <option value="<?= $v['voucherID'] ?>" data-discount="<?= $v['discount_value'] ?>" data-member-id="<?= $v['memberVoucherID'] ?>">
-                  <?= htmlspecialchars($v['code']) ?> (<?= $v['discount_value'] ?>% off)
+                <option value="<?= (int)$v['voucherID'] ?>" data-discount="<?= (float)$v['discount_value'] ?>" data-member-id="<?= (int)$v['memberVoucherID'] ?>">
+                  <?= htmlspecialchars($v['code']) ?> (<?= (float)$v['discount_value'] ?>% off)
                 </option>
               <?php endforeach; ?>
             </select>
@@ -237,6 +237,8 @@ $pageTitle = 'Cart - Bean There';
     function checkout() {
       const btn = document.getElementById("checkoutBtn");
       if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = "Redirecting...";
 
       const form = document.getElementById("checkoutForm");
       form.innerHTML = '';

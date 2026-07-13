@@ -361,3 +361,17 @@ INSERT INTO `admins` (`id`, `username`, `password`) VALUES
 
 INSERT INTO `users` (`userID`, `username`, `password`, `phone_number`, `email`, `authentication_status`) VALUES
 (1, 'testuser', 'SET_PASSWORD_MANUALLY', '0123456789', 'testuser@example.com', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_attempts` (rate limiting for user + admin login)
+--
+
+CREATE TABLE `login_attempts` (
+  `identifier` varchar(191) NOT NULL COMMENT 'lowercased username + | + IP',
+  `attempts` int(11) NOT NULL DEFAULT 1,
+  `first_attempt_at` datetime NOT NULL,
+  `locked_until` datetime DEFAULT NULL,
+  PRIMARY KEY (`identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
