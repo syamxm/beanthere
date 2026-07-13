@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/rate_limit.php';
 
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
@@ -17,43 +18,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['message'] = "All fields are required.";
     $_SESSION['success'] = false;
   } else {
-    $stmt = mysqli_prepare($conn, "SELECT username, password FROM admins WHERE username = ?");
-    mysqli_stmt_bind_param($stmt, "s", $username);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $current_admin, $storedPassword);
-    $found = mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $identifier = rate_limit_identifier($username);
+    $lockedFor = rate_limit_check($conn, $identifier);
 
-    $valid = false;
-    $needsRehash = false;
-    if ($found) {
-      if (password_verify($password, $storedPassword)) {
-        $valid = true;
-        $needsRehash = password_needs_rehash($storedPassword, PASSWORD_DEFAULT);
-      } elseif (hash_equals($storedPassword, $password)) {
-        $valid = true;
-        $needsRehash = true;
-      }
-    }
+    if ($lockedFor !== null) {
+      $_SESSION['message'] = "Too many attempts. Try again in " . ceil($lockedFor / 60) . " minute(s).";
+      $_SESSION['success'] = false;
+    } else {
+      $stmt = mysqli_prepare($conn, "SELECT username, password FROM admins WHERE username = ?");
+      mysqli_stmt_bind_param($stmt, "s", $username);
+      mysqli_stmt_execute($stmt);
+      mysqli_stmt_bind_result($stmt, $current_admin, $storedPassword);
+      $found = mysqli_stmt_fetch($stmt);
+      mysqli_stmt_close($stmt);
 
-    if ($valid) {
-      if ($needsRehash) {
-        $newHash = password_hash($password, PASSWORD_DEFAULT);
-        $update = mysqli_prepare($conn, "UPDATE admins SET password = ? WHERE username = ?");
-        mysqli_stmt_bind_param($update, "ss", $newHash, $current_admin);
-        mysqli_stmt_execute($update);
-        mysqli_stmt_close($update);
+      $valid = false;
+      $needsRehash = false;
+      if ($found) {
+        if (password_verify($password, $storedPassword)) {
+          $valid = true;
+          $needsRehash = password_needs_rehash($storedPassword, PASSWORD_DEFAULT);
+        } elseif (hash_equals($storedPassword, $password)) {
+          $valid = true;
+          $needsRehash = true;
+        }
       }
 
-      session_regenerate_id(true);
-      $_SESSION['current_admin'] = $current_admin;
+      if ($valid) {
+        if ($needsRehash) {
+          $newHash = password_hash($password, PASSWORD_DEFAULT);
+          $update = mysqli_prepare($conn, "UPDATE admins SET password = ? WHERE username = ?");
+          mysqli_stmt_bind_param($update, "ss", $newHash, $current_admin);
+          mysqli_stmt_execute($update);
+          mysqli_stmt_close($update);
+        }
 
-      header("Location: admin_home.php");
-      exit();
+        rate_limit_clear($conn, $identifier);
+        session_regenerate_id(true);
+        $_SESSION['current_admin'] = $current_admin;
+
+        header("Location: admin_home.php");
+        exit();
+      }
+
+      rate_limit_record_failure($conn, $identifier);
+      $_SESSION['message'] = "Invalid credentials, please try again.";
+      $_SESSION['success'] = false;
     }
-
-    $_SESSION['message'] = "Invalid credentials, please try again.";
-    $_SESSION['success'] = false;
   }
 
   $_SESSION['old'] = ['username' => $username];

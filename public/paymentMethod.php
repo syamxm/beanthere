@@ -141,7 +141,10 @@ $pageTitle = 'Payment - Bean There';
     <a href="cart.php" class="text-foam hover:text-caramel text-sm mb-6 inline-block">
       <i class="fa-solid fa-arrow-left mr-1"></i> Back to cart
     </a>
-    <h1 class="text-2xl font-bold mb-6">Choose payment method</h1>
+    <h1 class="text-2xl font-bold mb-2">Choose payment method</h1>
+    <p class="inline-flex items-center gap-1.5 text-xs text-foam bg-bean/40 border border-bean rounded-full px-3 py-1 mb-6">
+      <i class="fa-solid fa-flask text-caramel"></i> Demo — no real payment is processed, don't enter a real card number.
+    </p>
 
     <form id="paymentForm" method="post" class="bg-roast border border-bean rounded-2xl p-6">
       <?php
@@ -202,7 +205,7 @@ $pageTitle = 'Payment - Bean There';
         </select>
       </div>
 
-      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-2">Confirm payment</button>
+      <button type="submit" id="confirmPaymentBtn" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-2 disabled:opacity-60 disabled:cursor-not-allowed">Confirm payment</button>
     </form>
   </main>
 
@@ -229,8 +232,20 @@ $pageTitle = 'Payment - Bean There';
       return new Date(year, month) < now;
     }
 
+    const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
+
+    function lockSubmit(form) {
+      confirmPaymentBtn.disabled = true;
+      confirmPaymentBtn.textContent = "Processing...";
+      form.submit();
+    }
+
     document.getElementById("paymentForm").addEventListener("submit", function (e) {
       e.preventDefault();
+
+      if (confirmPaymentBtn.disabled) {
+        return;
+      }
 
       const selected = document.querySelector("input[name='paymentMethod']:checked");
       if (!selected) {
@@ -250,7 +265,7 @@ $pageTitle = 'Payment - Bean There';
           alert("Card is expired. Please use a valid card.");
           return;
         }
-        e.target.submit();
+        lockSubmit(e.target);
         return;
       }
 
@@ -260,8 +275,10 @@ $pageTitle = 'Payment - Bean There';
           alert("Please enter your phone number.");
           return;
         }
+        confirmPaymentBtn.disabled = true;
+        confirmPaymentBtn.textContent = "Redirecting...";
         alert("Redirecting to E-Wallet...");
-        setTimeout(() => e.target.submit(), 3000);
+        setTimeout(() => lockSubmit(e.target), 3000);
         return;
       }
 
@@ -271,8 +288,10 @@ $pageTitle = 'Payment - Bean There';
           alert("Please select a bank.");
           return;
         }
+        confirmPaymentBtn.disabled = true;
+        confirmPaymentBtn.textContent = "Redirecting...";
         alert("Redirecting to " + bank + " online banking portal...");
-        setTimeout(() => e.target.submit(), 3000);
+        setTimeout(() => lockSubmit(e.target), 3000);
       }
     });
   </script>
