@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
@@ -17,6 +18,8 @@ $stmt->fetch();
 $stmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
+  csrf_verify();
+
   $paymentMethod = $_POST['paymentMethod'];
   $selectedIDs = $_POST['selected_ids'] ?? [];
 
@@ -147,6 +150,7 @@ $pageTitle = 'Payment - Bean There';
     </p>
 
     <form id="paymentForm" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+      <?= csrf_field() ?>
       <?php
       if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids'])) {
         foreach ($_POST['selected_ids'] as $id) {
