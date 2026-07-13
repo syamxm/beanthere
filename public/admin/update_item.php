@@ -13,10 +13,12 @@ csrf_verify();
 
 // Validate and sanitize input
 if (
-  isset($_POST['id'], $_POST['name'], $_POST['image_path'], $_POST['price'], $_POST['category']) &&
+  isset($_POST['id'], $_POST['name'], $_POST['image_path'], $_POST['price'], $_POST['category'], $_POST['stock']) &&
   is_numeric($_POST['id']) &&
   is_numeric($_POST['price']) &&
-  ($_POST['old_price'] === '' || is_numeric($_POST['old_price']))
+  is_numeric($_POST['stock']) &&
+  ($_POST['old_price'] === '' || is_numeric($_POST['old_price'])) &&
+  in_array($_POST['category'], ['menu', 'product'], true)
 ) {
   $id = (int)$_POST['id'];
   $name = trim($_POST['name']);
@@ -25,7 +27,8 @@ if (
   $price = floatval($_POST['price']);
   $old_price = ($_POST['old_price'] === '') ? null : floatval($_POST['old_price']);
   $category = trim($_POST['category']);
-  $stock = $_POST['stock'];
+  $stock = (int)$_POST['stock'];
+  $stmt = null;
 
   if ($category === 'menu') {
     // Get menu-specific fields
