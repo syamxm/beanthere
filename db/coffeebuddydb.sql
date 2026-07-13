@@ -132,19 +132,19 @@ CREATE TABLE `menu_items` (
 --
 
 INSERT INTO `menu_items` (`id`, `name`, `image_path`, `price`, `old_price`, `category`, `roast_level`, `caffeine_level`, `flavour_profile`, `origin`, `drink_type`, `sugar_level`, `bestMood`, `bestWeather`, `stock`) VALUES
-(2, 'Latte', 'images/latte.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Smooth\",\"Creamy\"]', 'Colombia', 'Iced', '100%', '[\"calm\",\"focused\",\"relaxed\"]', '[\"mildly cool\",\"cloudy weather\"]', 7),
-(3, 'Cappuccino', 'images/cappuccino.jpg', 12.00, 15.00, 'menu', 'dark', 'medium', '[\"Bold\",\"Rich Espresso Taste\"]', 'Colombia', 'Iced', '0%', '[\"energized\",\"sociable\"]', '[\"cool mornings\",\"breezy afternoons\"]', 0),
-(5, 'Caramel Macchiato', 'images/caramel-macchiato.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Sweet\",\"Caramel\",\"Vanilla\"]', 'Colombia', 'Iced', '0%', '[\"sweet craving\",\"indulgent\",\"romantic\"]', '[\"light rain\",\"chilly evenings\"]', 1),
-(6, 'Americano', 'images/americano.jpg', 12.00, 15.00, 'menu', 'dark', 'high', '[\"Bold\",\"Bitter\",\"Rich Espresso Taste\"]', 'Sumatra', 'Hot', '0%', '[\"serious\",\"contemplative\",\"productive\"]', '[\"cold\",\"rainy\",\"snowy\"]', 1),
-(18, 'Colombian Supremo', 'images/colombian-supremo.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(19, 'Ethopian Yirgacheffe', 'images/ethopian-yirgacheffe.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(20, 'Vietnam Robusta', 'images/vietnam-robusta.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1),
-(21, 'Matcha Latte', 'images/matcha-latte.jpg', 12.00, 15.00, 'menu', '', 'low', '[\"Earthy\",\"Grassy\",\"Sweet\"]', '', 'Iced', '0%', '[\"spiritual\",\"serene\"]', '[\"spring mornings\",\"sunny\",\"cool\"]', 2),
-(22, 'Hazelnut Latte', 'images/hazelnut-latte.jpg', 13.00, 15.00, 'menu', 'medium', 'medium', '[\"Nutty\",\"Sweet\",\"Creamy\"]', 'Colombia', 'Iced', '50%', '[\"calm\",\"comforted\"]', '[\"rainy\",\"mildly cool\"]', 10),
-(23, 'Vanilla Cold Brew', 'images/vanilla-cold-brew.jpg', 14.00, 16.00, 'menu', 'dark', 'high', '[\"Vanilla\",\"Bold\",\"Smooth\"]', 'Ethiopia', 'Iced', '0%', '[\"focused\",\"energized\"]', '[\"sunny\",\"cool mornings\"]', 8),
-(24, 'Honey Americano', 'images/honey-americano.jpg', 12.00, 13.50, 'menu', 'medium', 'medium', '[\"Honey\",\"Bitter\",\"Sweet\"]', 'Brazil', 'Hot', '25%', '[\"productive\",\"warm-hearted\"]', '[\"cold\",\"rainy\"]', 5),
-(25, 'Caramel Frappe', 'images/caramel-frappe.jpg', 15.00, 17.00, 'menu', 'light', 'low', '[\"Caramel\",\"Milky\",\"Chilled\"]', 'Colombia', 'Iced', '75%', '[\"happy\",\"playful\"]', '[\"hot\",\"sunny\"]', 7),
-(26, 'Mocha', 'images/mocha.jpg', 19.99, 12.00, 'menu', 'Medium', 'High', '[\"Smooth\",\"Creamy\"]', 'Brazil', NULL, NULL, '[\"calm\",\"focused\",\"relaxed\"]', '[\"cold\",\"rainy\",\"snowy\"]', 10);
+(2, 'Latte', 'assets/images/latte.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Smooth\",\"Creamy\"]', 'Colombia', 'Iced', '100%', '[\"calm\",\"focused\",\"relaxed\"]', '[\"mildly cool\",\"cloudy weather\"]', 7),
+(3, 'Cappuccino', 'assets/images/cappuccino.jpg', 12.00, 15.00, 'menu', 'dark', 'medium', '[\"Bold\",\"Rich Espresso Taste\"]', 'Colombia', 'Iced', '0%', '[\"energized\",\"sociable\"]', '[\"cool mornings\",\"breezy afternoons\"]', 0),
+(5, 'Caramel Macchiato', 'assets/images/caramel-macchiato.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Sweet\",\"Caramel\",\"Vanilla\"]', 'Colombia', 'Iced', '0%', '[\"sweet craving\",\"indulgent\",\"romantic\"]', '[\"light rain\",\"chilly evenings\"]', 1),
+(6, 'Americano', 'assets/images/americano.jpg', 12.00, 15.00, 'menu', 'dark', 'high', '[\"Bold\",\"Bitter\",\"Rich Espresso Taste\"]', 'Sumatra', 'Hot', '0%', '[\"serious\",\"contemplative\",\"productive\"]', '[\"cold\",\"rainy\",\"snowy\"]', 1),
+(18, 'Colombian Supremo', 'assets/images/colombian-supremo.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(19, 'Ethopian Yirgacheffe', 'assets/images/ethopian-yirgacheffe.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(20, 'Vietnam Robusta', 'assets/images/vietnam-robusta.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1),
+(21, 'Matcha Latte', 'assets/images/matcha-latte.jpg', 12.00, 15.00, 'menu', '', 'low', '[\"Earthy\",\"Grassy\",\"Sweet\"]', '', 'Iced', '0%', '[\"spiritual\",\"serene\"]', '[\"spring mornings\",\"sunny\",\"cool\"]', 2),
+(22, 'Hazelnut Latte', 'assets/images/hazelnut-latte.jpg', 13.00, 15.00, 'menu', 'medium', 'medium', '[\"Nutty\",\"Sweet\",\"Creamy\"]', 'Colombia', 'Iced', '50%', '[\"calm\",\"comforted\"]', '[\"rainy\",\"mildly cool\"]', 10),
+(23, 'Vanilla Cold Brew', 'assets/images/vanilla-cold-brew.jpg', 14.00, 16.00, 'menu', 'dark', 'high', '[\"Vanilla\",\"Bold\",\"Smooth\"]', 'Ethiopia', 'Iced', '0%', '[\"focused\",\"energized\"]', '[\"sunny\",\"cool mornings\"]', 8),
+(24, 'Honey Americano', 'assets/images/honey-americano.jpg', 12.00, 13.50, 'menu', 'medium', 'medium', '[\"Honey\",\"Bitter\",\"Sweet\"]', 'Brazil', 'Hot', '25%', '[\"productive\",\"warm-hearted\"]', '[\"cold\",\"rainy\"]', 5),
+(25, 'Caramel Frappe', 'assets/images/caramel-frappe.jpg', 15.00, 17.00, 'menu', 'light', 'low', '[\"Caramel\",\"Milky\",\"Chilled\"]', 'Colombia', 'Iced', '75%', '[\"happy\",\"playful\"]', '[\"hot\",\"sunny\"]', 7),
+(26, 'Mocha', 'assets/images/mocha.jpg', 19.99, 12.00, 'menu', 'Medium', 'High', '[\"Smooth\",\"Creamy\"]', 'Brazil', NULL, NULL, '[\"calm\",\"focused\",\"relaxed\"]', '[\"cold\",\"rainy\",\"snowy\"]', 10);
 
 -- --------------------------------------------------------
 
