@@ -2,7 +2,8 @@
 session_start();
 
 if (!isset($_SESSION['current_user'])) {
-  die("Unauthorized. Please log in.");
+  header('Location: user_login.php?return=user_order_tracking.php');
+  exit();
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
@@ -26,106 +27,59 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 $conn->close();
-?>
 
+$pageTitle = 'Your orders - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Your Orders - Bean There</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #fdfaf6;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .order-card {
-      border: 1px solid #ddd;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      background-color: #fff7f0;
-    }
-
-    .status {
-      font-weight: bold;
-      padding: 0.25rem 0.75rem;
-      border-radius: 1rem;
-      display: inline-block;
-      font-size: 0.95rem;
-    }
-
-    .status.processing {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .status.in-transit {
-      background-color: #bee3f8;
-      color: #1e40af;
-    }
-
-    .status.complete {
-      background-color: #d1fae5;
-      color: #065f46;
-    }
-
-    .empty {
-      text-align: center;
-      color: #999;
-      margin-top: 2rem;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body>
-  <div class="container">
-    <a href="user_dashboard.php" class="fixed top-5 left-5 z-50 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
-      ← Go To Main Menu
-    </a>
-    <h2 class="text-2xl font-bold text-center mb-6">Order Tracking</h2>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
+
+  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+    <h1 class="text-3xl font-bold mb-2">Your orders</h1>
+    <p class="text-foam text-sm mb-8">Status updates automatically as we work on your order.</p>
 
     <?php if (empty($orders)): ?>
-      <p class="empty">No current orders found.</p>
+      <div class="bg-roast border border-bean rounded-2xl p-10 text-center">
+        <i class="fa-solid fa-receipt text-caramel text-4xl mb-4"></i>
+        <p class="text-lg font-semibold mb-2">No orders yet</p>
+        <p class="text-foam text-sm mb-6">When you place an order, you can track it here.</p>
+        <a href="user_dashboard.php" class="bg-caramel text-espresso font-semibold px-6 py-2.5 rounded-full hover:bg-crema transition">Browse the menu</a>
+      </div>
     <?php else: ?>
-      <?php foreach ($orders as $order):
-        $statusRaw = strtolower($order['orderStatus']);
-        $statusClass = "processing";
-        $statusText = "Processing";
-
-        if (in_array($statusRaw, ['out for delivery', 'ready for pickup'])) {
-          $statusClass = "in-transit";
-          $statusText = ucfirst($order['orderStatus']);
-        } elseif (in_array($statusRaw, ['delivered', 'done pickup'])) {
-          $statusClass = "complete";
-          $statusText = ucfirst($order['orderStatus']);
-        } elseif (in_array($statusRaw, ['order received', 'preparing'])) {
-          $statusClass = "processing";
-          $statusText = ucfirst($order['orderStatus']);
-        }
-      ?>
-        <div class="order-card">
-          <h3 class="text-xl font-semibold mb-2"><?= htmlspecialchars($order['name']) ?></h3>
-          <p>Quantity: <?= $order['qty'] ?></p>
-          <p>Total: RM <?= number_format($order['total'], 2) ?></p>
-          <p>Delivery: <?= htmlspecialchars($order['delivery']) ?></p>
-          <p>Ordered At: <?= date("Y-m-d H:i:s", strtotime($order['orderTime'])) ?></p>
-          <p class="mt-2">Status: <span class="status <?= $statusClass ?>"><?= $statusText ?></span></p>
-        </div>
-      <?php endforeach; ?>
+      <div class="flex flex-col gap-4">
+        <?php foreach ($orders as $order):
+          $statusRaw = strtolower($order['orderStatus']);
+          if (in_array($statusRaw, ['out for delivery', 'ready for pickup'])) {
+            $badge = 'bg-blue-400/20 text-blue-300';
+          } elseif (in_array($statusRaw, ['delivered', 'done pickup'])) {
+            $badge = 'bg-green-400/20 text-green-300';
+          } else {
+            $badge = 'bg-caramel/20 text-caramel';
+          }
+        ?>
+          <div class="bg-roast border border-bean rounded-2xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="font-semibold text-lg"><?= htmlspecialchars($order['name']) ?></h2>
+              <span class="text-sm font-semibold px-3 py-1 rounded-full <?= $badge ?>"><?= htmlspecialchars(ucwords($order['orderStatus'])) ?></span>
+            </div>
+            <p class="text-foam text-sm">
+              Qty <?= (int)$order['qty'] ?> · RM<?= number_format($order['total'], 2) ?> ·
+              <?= htmlspecialchars($order['delivery']) ?> ·
+              ordered <?= htmlspecialchars(date("j M Y, g:ia", strtotime($order['orderTime']))) ?>
+            </p>
+          </div>
+        <?php endforeach; ?>
+      </div>
     <?php endif; ?>
-  </div>
+  </main>
+
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>
 
 </html>

@@ -2,14 +2,14 @@
 session_start();
 
 if (!isset($_SESSION['current_user'])) {
-  die("Unauthorized. Please log in.");
+  header('Location: user_login.php?return=voucher.php');
+  exit();
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
 
 $username = $_SESSION['current_user'];
 
-// Get userID
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -17,7 +17,6 @@ $stmt->bind_result($userID);
 $stmt->fetch();
 $stmt->close();
 
-// Get membershipID
 $stmt = $conn->prepare("SELECT membershipID FROM membership WHERE userID = ? AND status = 'active'");
 $stmt->bind_param("i", $userID);
 $stmt->execute();
@@ -28,7 +27,7 @@ $stmt->close();
 $vouchers = [];
 if ($membershipID) {
   $stmt = $conn->prepare("
-    SELECT v.code, v.discount_value, v.valid_from, v.valid_until, v.status, mv.used 
+    SELECT v.code, v.discount_value, v.valid_from, v.valid_until, v.status, mv.used
     FROM member_vouchers mv
     JOIN vouchers v ON mv.voucherID = v.voucherID
     WHERE mv.membershipID = ? AND v.status = 'active'
@@ -42,68 +41,50 @@ if ($membershipID) {
 }
 
 $conn->close();
-?>
 
+$pageTitle = 'My vouchers - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>My Vouchers - Bean There</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #fdfaf6;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .voucher-card {
-      border: 1px solid #ddd;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      background-color: #fff7f0;
-    }
-
-    .used {
-      color: #ff5e5e;
-      font-weight: bold;
-    }
-
-    .unused {
-      color: #28a745;
-      font-weight: bold;
-    }
-
-    .empty {
-      text-align: center;
-      color: #999;
-      margin-top: 2rem;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body>
-  <div class="container max-w-3xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-lg">
-    <a href="user_dashboard.php" class="fixed top-5 left-5 z-50 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
-      ← Go To Main Menu
-    </a>
-    <h2 class="text-2xl font-bold text-center mb-6">My Vouchers</h2>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
+
+  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+    <h1 class="text-3xl font-bold mb-2">My vouchers</h1>
+    <p class="text-foam text-sm mb-8">Apply them at checkout for a discount on your order.</p>
 
     <?php if (empty($vouchers)): ?>
-      <p class="empty">You currently have no vouchers.</p>
+      <div class="bg-roast border border-bean rounded-2xl p-10 text-center">
+        <i class="fa-solid fa-ticket text-caramel text-4xl mb-4"></i>
+        <p class="text-lg font-semibold mb-2">No vouchers yet</p>
+        <p class="text-foam text-sm mb-6">Active members receive vouchers automatically. <a href="membership.php" class="text-caramel underline hover:text-crema">Check your membership</a>.</p>
+      </div>
     <?php else: ?>
-      <?php foreach ($vouchers as $v): ?>
-        <div class="voucher-card">
-          <h3 class="text-xl font-semibold mb-2">Code: <?= htmlspecialchars($v['code']) ?></h3>
-          <p>Discount: <?= number_format($v['discount_value'], 2) ?>%</p>
-          <p>Valid From: <?= $v['valid_from'] ?></p>
-          <p>Valid Until: <?= $v['valid_until'] ?></p>
-          <p>Status: <span class="<?= $v['used'] ? 'used' : 'unused' ?>"><?= $v['used'] ? 'Used' : 'Unused' ?></span></p>
-        </div>
-      <?php endforeach; ?>
+      <div class="flex flex-col gap-4">
+        <?php foreach ($vouchers as $v): ?>
+          <div class="bg-roast border border-bean rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="font-semibold text-lg tracking-widest text-caramel"><?= htmlspecialchars($v['code']) ?></p>
+              <p class="text-foam text-sm">
+                <?= number_format($v['discount_value'], 0) ?>% off ·
+                valid <?= htmlspecialchars($v['valid_from']) ?> to <?= htmlspecialchars($v['valid_until']) ?>
+              </p>
+            </div>
+            <span class="text-sm font-semibold px-3 py-1 rounded-full <?= $v['used'] ? 'bg-bean text-foam' : 'bg-caramel text-espresso' ?>">
+              <?= $v['used'] ? 'Used' : 'Ready to use' ?>
+            </span>
+          </div>
+        <?php endforeach; ?>
+      </div>
     <?php endif; ?>
-  </div>
+  </main>
+
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>
 
 </html>

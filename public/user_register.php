@@ -1,28 +1,19 @@
 <?php
 session_start();
 
-// Connect to DB
 require_once __DIR__ . '/../src/dbconn.php';
 
-// Message display
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
-
-// Clear session message after displaying it once
 unset($_SESSION['message'], $_SESSION['success']);
 
-// Form values
 $username = "";
-$password = "";
-$confirmPassword = "";
 
-// Process form when submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
   $confirmPassword = trim($_POST['confirm-password']);
 
-  // Validation
   if (empty($username) || empty($password) || empty($confirmPassword)) {
     $_SESSION['message'] = "All fields are required.";
     $_SESSION['success'] = false;
@@ -30,7 +21,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['message'] = "Passwords do not match.";
     $_SESSION['success'] = false;
   } else {
-    // Check if username is taken
     $stmt = mysqli_prepare($conn, "SELECT userID FROM users WHERE username = ?");
     mysqli_stmt_bind_param($stmt, "s", $username);
     mysqli_stmt_execute($stmt);
@@ -45,118 +35,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       mysqli_stmt_bind_param($insert, "ss", $username, $hashedPassword);
 
       if (mysqli_stmt_execute($insert)) {
-        $_SESSION['message'] = "Registration successful!";
-        $_SESSION['success'] = true;
-
-        // Optionally clear inputs
-        header("Location: user_register.php");
+        session_regenerate_id(true);
+        $_SESSION['current_user'] = $username;
+        header("Location: user_dashboard.php");
         exit();
-      } else {
-        $_SESSION['message'] = "Error while registering.";
-        $_SESSION['success'] = false;
       }
+
+      $_SESSION['message'] = "Error while registering.";
+      $_SESSION['success'] = false;
     }
   }
 
-  // Store entered values temporarily
-  $_SESSION['old'] = [
-    'username' => $username,
-  ];
-
+  $_SESSION['old'] = ['username' => $username];
   header("Location: user_register.php");
   exit();
 }
 
-// Retrieve old values if available
 if (isset($_SESSION['old'])) {
   $username = $_SESSION['old']['username'];
   unset($_SESSION['old']);
 }
+
+$pageTitle = 'Sign up - Bean There';
 ?>
-<?php if ($success): ?>
-  <script>
-    // Wait for 1 second then redirect
-    setTimeout(function() {
-      window.location.href = "user_dashboard.php";
-    }, 1000);
-  </script>
-<?php endif; ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register Form</title>
-  <link rel="stylesheet" href="assets/style.css" />
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .go-back-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background-color: #c49b63;
-      color: #000;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-      z-index: 50;
-    }
-
-    .go-back-btn:hover {
-      background-color: #fff;
-      color: #000;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body>
-  <a href="user_dashboard.php" class="go-back-btn">← Go To Main Menu</a>
-  <div class="form-container">
-    <form action="" method="post">
-      <h1>Register Form</h1><br>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" />
-      </div>
+  <main class="grow flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-sm">
+      <h1 class="text-2xl font-bold mb-1">Create your account</h1>
+      <p class="text-foam text-sm mb-6">Order ahead and earn member vouchers.</p>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" />
-      </div>
+      <form action="" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+        <label for="username" class="block text-sm text-foam mb-1.5">Username</label>
+        <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" required
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
 
-      <div class="form-group">
-        <label for="confirm-password">Confirm Password</label>
-        <input type="password" id="confirm-password" name="confirm-password" />
-      </div>
+        <label for="password" class="block text-sm text-foam mb-1.5">Password</label>
+        <input type="password" id="password" name="password" required
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
 
-      <div class="form-group">
-        <button type="submit" class="submit-button">Submit</button>
-      </div>
-    </form>
+        <label for="confirm-password" class="block text-sm text-foam mb-1.5">Confirm password</label>
+        <input type="password" id="confirm-password" name="confirm-password" required
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-6 text-crema focus:outline-none focus:border-caramel">
 
-    <?php if (!empty($message)): ?>
-      <div id="formOutput" class="output" style="color: <?= $success ? 'green' : 'red' ?>;">
-        <?= htmlspecialchars($message) ?>
-      </div>
-    <?php endif; ?>
+        <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Sign up</button>
 
+        <?php if (!empty($message)): ?>
+          <p class="mt-4 text-sm text-center <?= $success ? 'text-green-400' : 'text-red-400' ?>"><?= htmlspecialchars($message) ?></p>
+        <?php endif; ?>
+      </form>
 
+      <p class="text-foam text-sm text-center mt-4">
+        Already have an account? <a href="user_login.php" class="text-caramel hover:text-crema underline">Log in</a>
+      </p>
+    </div>
+  </main>
 
-  </div>
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>
 
 </html>

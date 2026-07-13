@@ -1,35 +1,25 @@
 <?php
-
 session_start();
 if (!isset($_SESSION['current_admin'])) {
   header('Location: admin_login.php');
   exit();
 }
-?>
-<?php
 
-// Connect to DB
 require_once __DIR__ . '/../../src/dbconn.php';
+require_once __DIR__ . '/../../src/csrf.php';
 
-// Message display
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
-
-// Clear session message after displaying it once
 unset($_SESSION['message'], $_SESSION['success']);
 
-// Form values
 $username = "";
-$password = "";
-$confirmPassword = "";
 
-// Process form when submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  csrf_verify();
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
   $confirmPassword = trim($_POST['confirm-password']);
 
-  // Validation
   if (empty($username) || empty($password) || empty($confirmPassword)) {
     $_SESSION['message'] = "All fields are required.";
     $_SESSION['success'] = false;
@@ -37,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['message'] = "Passwords do not match.";
     $_SESSION['success'] = false;
   } else {
-    // Check if username is taken
     $stmt = mysqli_prepare($conn, "SELECT id FROM admins WHERE username = ?");
     mysqli_stmt_bind_param($stmt, "s", $username);
     mysqli_stmt_execute($stmt);
@@ -52,98 +41,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       mysqli_stmt_bind_param($insert, "ss", $username, $hashedPassword);
 
       if (mysqli_stmt_execute($insert)) {
-        $_SESSION['message'] = "Registration successful!";
+        $_SESSION['message'] = "Admin '$username' registered successfully.";
         $_SESSION['success'] = true;
-
-        // Optionally clear inputs
         header("Location: admin_register.php");
         exit();
-      } else {
-        $_SESSION['message'] = "Error while registering.";
-        $_SESSION['success'] = false;
       }
+
+      $_SESSION['message'] = "Error while registering.";
+      $_SESSION['success'] = false;
     }
   }
 
-  // Store entered values temporarily
-  $_SESSION['old'] = [
-    'username' => $username,
-  ];
-
+  $_SESSION['old'] = ['username' => $username];
   header("Location: admin_register.php");
   exit();
 }
 
-// Retrieve old values if available
 if (isset($_SESSION['old'])) {
   $username = $_SESSION['old']['username'];
   unset($_SESSION['old']);
 }
+
+$pageTitle = 'Register admin - Bean There Admin';
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register Form</title>
-  <link rel="stylesheet" href="../assets/style.css" />
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .button-link {
-      display: inline-block;
-      margin-top: 10px;
-      color: #c49b63;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .button-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <?php include __DIR__ . '/../../src/partials/admin_head.php'; ?>
 </head>
 
-<body>
-  <div class="form-container">
-    <form action="" method="post">
-      <h1>Admin Register Form</h1><br>
+<body class="bg-espresso text-crema font-sans min-h-screen">
+  <?php include __DIR__ . '/../../src/partials/admin_nav.php'; ?>
 
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" />
-      </div>
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">Register new admin</h1>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" />
-      </div>
+    <form action="" method="post" class="admin-form">
+      <?= csrf_field() ?>
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>" required>
 
-      <div class="form-group">
-        <label for="confirm-password">Confirm Password</label>
-        <input type="password" id="confirm-password" name="confirm-password" />
-      </div>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
 
-      <div class="form-group">
-        <button type="submit" class="submit-button">Submit</button>
-      </div>
-      <a href="admin_home.php" class="button-link">⬅ Back to Admin Page</a>
+      <label for="confirm-password">Confirm password</label>
+      <input type="password" id="confirm-password" name="confirm-password" required>
+
+      <button type="submit" class="btn-caramel w-full mt-5">Register admin</button>
+
+      <?php if (!empty($message)): ?>
+        <p class="mt-4 text-sm text-center <?= $success ? 'text-green-400' : 'text-red-400' ?>"><?= htmlspecialchars($message) ?></p>
+      <?php endif; ?>
     </form>
-
-    <?php if (!empty($message)): ?>
-      <div id="formOutput" class="output" style="color: <?= $success ? 'green' : 'red' ?>;">
-        <?= htmlspecialchars($message) ?>
-      </div>
-    <?php endif; ?>
-  </div>
+  </main>
 </body>
 
 </html>

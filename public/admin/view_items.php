@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 if (!isset($_SESSION['current_admin'])) {
   header('Location: admin_login.php');
@@ -7,205 +6,92 @@ if (!isset($_SESSION['current_admin'])) {
 }
 
 require_once __DIR__ . '/../../src/csrf.php';
-?>
+require_once __DIR__ . '/../../src/dbconn.php';
 
+$flash = $_SESSION['message'] ?? '';
+unset($_SESSION['message']);
+
+$items = [];
+$result = mysqli_query($conn, "SELECT * FROM menu_items ORDER BY category, id");
+while ($row = mysqli_fetch_assoc($result)) {
+  $items[] = $row;
+}
+mysqli_close($conn);
+
+function json_list(?string $json): string
+{
+  $decoded = json_decode((string)$json, true);
+  return is_array($decoded) ? implode(', ', $decoded) : '';
+}
+
+$pageTitle = 'Items - Bean There Admin';
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <meta charset="ISO-8859-1">
-  <title>Menu Items</title>
-  <link rel="stylesheet" href="../assets/style_scrollbar.css" />
-  <style>
-    body {
-      background-color: #121212;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      padding: 120px 20px 20px 20px;
-      /* add top padding to avoid hidden content */
-      margin: 0;
-    }
-
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: #1f1f1f;
-      padding: 20px 20px 10px 20px;
-      z-index: 999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-    }
-
-    .back-link {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #c49b63;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    h1 {
-      color: #c49b63;
-      margin: 0;
-    }
-
-    table {
-      width: 95%;
-      border-collapse: collapse;
-      margin-bottom: 30px;
-    }
-
-    th,
-    td {
-      border: 1px solid #333;
-      padding: 12px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #1f1f1f;
-      color: #c49b63;
-    }
-
-    tr:nth-child(even) {
-      background-color: #1a1a1a;
-    }
-
-    tr:nth-child(odd) {
-      background-color: #222;
-    }
-
-    a.button {
-      display: inline-block;
-      padding: 6px 12px;
-      margin: 2px;
-      background-color: #c49b63;
-      color: #000;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a.button:hover {
-      background-color: #fff;
-    }
-  </style>
+  <?php include __DIR__ . '/../../src/partials/admin_head.php'; ?>
 </head>
 
-<body>
+<body class="bg-espresso text-crema font-sans min-h-screen">
+  <?php include __DIR__ . '/../../src/partials/admin_nav.php'; ?>
 
-  <header>
-    <a href="admin_home.php" class="back-link">⬅ Back to Admin Page</a>
-    <h1>Menu Items</h1>
-  </header>
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <h1 class="text-2xl font-bold">Items</h1>
+      <a href="add_item.php" class="btn-caramel"><i class="fa-solid fa-plus mr-1"></i> Add item</a>
+    </div>
 
-  <?php
-  if (isset($_SESSION['message'])) {
-    echo "<p style='text-align:center; font-weight:bold; color:#f8b400;'>" . htmlspecialchars($_SESSION['message']) . "</p>";
-    unset($_SESSION['message']);
-  }
-  ?>
+    <?php if ($flash): ?>
+      <p class="flash-message"><?= htmlspecialchars($flash) ?></p>
+    <?php endif; ?>
 
-
-  <table border="1" cellspacing="4" cellpadding="4">
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Price</th>
-      <th>Old Price</th>
-      <th>Category</th>
-      <th>Roast Level</th>
-      <th>Caffeine Level</th>
-      <th>Flavor Profile</th>
-      <th>Drink Type</th>
-      <th>Sugar Level</th>
-      <th>Best Mood</th>
-      <th>Best Weather</th>
-      <th>Stock</th>
-      <th>EDIT</th>
-      <th>DELETE</th>
-    </tr>
-    <?php
-    require_once __DIR__ . '/../../src/dbconn.php';
-    $sql = "SELECT * FROM menu_items";
-    $result = mysqli_query($conn, $sql);
-    if (mysqli_num_rows($result) > 0) {
-      while ($row = mysqli_fetch_assoc($result)) {
-        $id = $row['id'];
-        $name = $row['name'];
-        $price = $row['price'];
-        $old_price = $row['old_price'];
-        $category = $row['category'];
-        $roast_level = $row['roast_level'];
-        $caffeine_level = $row['caffeine_level'];
-        // *****
-        $flavour_input = $row["flavour_profile"];
-        $flavour_array = json_decode($flavour_input, true);
-        $flavour_profile = is_array($flavour_array) ? implode(', ', $flavour_array) : '';
-        // *****
-        $drink_type = $row['drink_type'];
-        $sugar_level = $row['sugar_level'];
-        //***** */
-        $bestMood_json = $row["bestMood"];
-        $bestMood_array = json_decode($bestMood_json, true);
-        $bestMood = is_array($bestMood_array) ? implode(', ', $bestMood_array) : '';
-        //***** */
-        $bestWeather_json = $row["bestWeather"];
-        $bestWeather_array = json_decode($bestWeather_json, true);
-        $bestWeather = is_array($bestWeather_array) ? implode(', ', $bestWeather_array) : '';
-        //***** */
-        $stock = $row['stock'];
-    ?>
-        <tr>
-          <td><?php echo $id ?></td>
-          <td><?php echo htmlspecialchars($name) ?></td>
-
-          <td><?php echo $price ?></td>
-          <td><?php echo $old_price ?></td>
-          <td><?php echo htmlspecialchars($category) ?></td>
-          <td><?php echo htmlspecialchars($roast_level) ?></td>
-          <td><?php echo htmlspecialchars($caffeine_level) ?></td>
-          <td><?php echo htmlspecialchars($flavour_profile) ?></td>
-
-          <td><?php echo htmlspecialchars($drink_type) ?></td>
-          <td><?php echo htmlspecialchars($sugar_level) ?></td>
-          <td><?php echo htmlspecialchars($bestMood) ?></td>
-          <td><?php echo htmlspecialchars($bestWeather) ?></td>
-          <td><?php echo $stock ?></td>
-          <td><a href='edit_item.php?id=<?php echo $id ?>' class='button'>Edit</a></td>
-          <td>
-            <form method="POST" action="delete_item.php" onsubmit="return confirm('Are you sure you want to delete this item?');">
-              <?php echo csrf_field() ?>
-              <input type="hidden" name="id" value="<?php echo $id ?>">
-              <button type="submit" class="button">Delete</button>
-            </form>
-          </td>
-        </tr>
-      <?php
-      }
-    } else {
-      ?>
-      <tr>
-        <td colspan="8">
-          <h2>No menu items found.</h2>
-        </td>
-      </tr>
-    <?php
-    }
-    mysqli_close($conn);
-    ?>
-  </table>
-
+    <?php if (empty($items)): ?>
+      <p class="text-foam">No menu items found.</p>
+    <?php else: ?>
+      <div class="overflow-x-auto">
+        <table class="admin-table">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Old price</th>
+            <th>Category</th>
+            <th>Roast</th>
+            <th>Caffeine</th>
+            <th>Flavours</th>
+            <th>Type</th>
+            <th>Stock</th>
+            <th colspan="2">Actions</th>
+          </tr>
+          <?php foreach ($items as $row): ?>
+            <tr>
+              <td><?= (int)$row['id'] ?></td>
+              <td class="whitespace-nowrap"><?= htmlspecialchars($row['name']) ?></td>
+              <td class="max-w-56"><?= htmlspecialchars($row['description'] ?? '') ?></td>
+              <td>RM<?= number_format($row['price'], 2) ?></td>
+              <td><?= $row['old_price'] ? 'RM' . number_format($row['old_price'], 2) : '—' ?></td>
+              <td><?= htmlspecialchars($row['category']) ?></td>
+              <td><?= htmlspecialchars($row['roast_level'] ?? '—') ?></td>
+              <td><?= htmlspecialchars($row['caffeine_level'] ?? '—') ?></td>
+              <td class="max-w-40"><?= htmlspecialchars(json_list($row['flavour_profile'])) ?></td>
+              <td><?= htmlspecialchars($row['drink_type'] ?? '—') ?></td>
+              <td><?= (int)$row['stock'] ?></td>
+              <td><a href="edit_item.php?id=<?= (int)$row['id'] ?>" class="btn-outline">Edit</a></td>
+              <td>
+                <form method="POST" action="delete_item.php" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
+                  <button type="submit" class="btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+    <?php endif; ?>
+  </main>
 </body>
 
 </html>

@@ -6,15 +6,14 @@ require_once __DIR__ . '/../src/get_recommendation.php';
 
 $recommendations = [];
 $error = "";
+$searched = false;
 
-// Step 1: Capture POST and redirect to clear form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $_SESSION['form_data'] = $_POST;
   header("Location: recommendation.php#recommended");
   exit;
 }
 
-// Step 2: Process session data if it exists
 if (isset($_SESSION['form_data'])) {
   $answers = [
     'roast' => trim($_SESSION['form_data']['roast'] ?? ''),
@@ -23,284 +22,106 @@ if (isset($_SESSION['form_data'])) {
     'currentMood' => trim($_SESSION['form_data']['currentMood'] ?? ''),
     'currentWeather' => trim($_SESSION['form_data']['currentWeather'] ?? ''),
   ];
-  unset($_SESSION['form_data']); // Clear after use
+  unset($_SESSION['form_data']);
 
   if (implode('', $answers) === '') {
-    $error = "Please fill in at least one field to get recommendations.";
+    $error = "Fill in at least one field to get a recommendation.";
   } else {
+    $searched = true;
     $recommendations = get_recommendation($answers);
   }
 }
-?>
 
+$pageTitle = 'Recommendation - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Recommendation - Bean There</title>
-  <link rel="stylesheet" href="assets/style.css" />
-  <link rel="stylesheet" href="assets/style_scrollbar.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding-top: 20px;
-    }
-
-    .logo {
-      font-size: 28px;
-      font-weight: 700;
-      color: #c49b63;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      text-align: center;
-    }
-
-    .page-content {
-      display: flex;
-      justify-content: center;
-      padding-top: 100px;
-      margin-bottom: 40px;
-    }
-
-    form {
-      background: #222;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    select,
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      background-color: #333;
-      color: #fff;
-      border: 1px solid #444;
-      border-radius: 4px;
-    }
-
-    .submit-button {
-      width: 100%;
-      padding: 10px;
-      background-color: #c49b63;
-      color: #000;
-      border: none;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .submit-button:hover {
-      background-color: #fff;
-    }
-
-    .error {
-      color: red;
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .go-back-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background-color: #c49b63;
-      color: #000;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-      z-index: 50;
-    }
-
-    .go-back-btn:hover {
-      background-color: #fff;
-      color: #000;
-    }
-
-    section.menu {
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    section.menu h2 {
-      font-size: 32px;
-      color: #c49b63;
-      margin-bottom: 20px;
-    }
-
-    section.menu h2 span {
-      color: #fff;
-    }
-
-    .box-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .box {
-      background-color: #1a1a1a;
-      border: 1px solid #444;
-      border-radius: 10px;
-      padding: 20px;
-      width: 250px;
-      text-align: center;
-      transition: transform 0.3s;
-    }
-
-    .box:hover {
-      transform: translateY(-5px);
-    }
-
-    .box img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    .box h3 {
-      margin-bottom: 10px;
-      font-size: 20px;
-    }
-
-    .price {
-      font-size: 18px;
-      color: #c49b63;
-    }
-
-    .price span {
-      text-decoration: line-through;
-      color: #888;
-      margin-left: 8px;
-    }
-
-    .btn {
-      display: inline-block;
-      margin-top: 15px;
-      background: #c49b63;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .btn:hover {
-      background: #fff;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body>
-  <a href="user_dashboard.php" class="go-back-btn">← Go To Main Menu</a>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <header>
-    <div class="logo">Get Your Coffee Recommendation</div>
-  </header>
+  <main class="grow max-w-6xl mx-auto w-full px-4 py-10">
+    <h1 class="text-3xl font-bold mb-2">Find your cup</h1>
+    <p class="text-foam text-sm mb-8">Tell us what you're in the mood for and we'll match it against our menu.</p>
 
-  <div class="page-content">
-    <div class="form-container">
-      <form action="recommendation.php" method="post">
-        <div class="form-group">
-          <label for="roast">Roast Level</label>
-          <select name="roast" id="roast">
-            <option value="">Select...</option>
+    <form action="recommendation.php" method="post" class="bg-roast border border-bean rounded-2xl p-6 max-w-xl">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label for="roast" class="block text-sm text-foam mb-1.5">Roast level</label>
+          <select name="roast" id="roast" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
+            <option value="">No preference</option>
             <option value="light">Light</option>
             <option value="medium">Medium</option>
             <option value="dark">Dark</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label for="caffeine">Caffeine Level</label>
-          <select name="caffeine" id="caffeine">
-            <option value="">Select...</option>
+        <div>
+          <label for="caffeine" class="block text-sm text-foam mb-1.5">Caffeine level</label>
+          <select name="caffeine" id="caffeine" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
+            <option value="">No preference</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label for="flavour">Flavour Profile</label>
-          <input type="text" name="flavour" id="flavour" placeholder="e.g. Nutty, Smooth" />
-        </div>
-
-        <div class="form-group">
-          <label for="currentMood">Current Mood</label>
-          <input type="text" name="currentMood" id="currentMood" placeholder="e.g. jolly, low, relaxed" />
-        </div>
-
-        <div class="form-group">
-          <label for="currentWeather">Current Weather</label>
-          <input type="text" name="currentWeather" id="currentWeather" placeholder="e.g. Sunny, Cold, Rainy" />
-        </div>
-
-        <div class="form-group">
-          <button type="submit" class="submit-button">Get Recommendation</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <?php if (!empty($error)): ?>
-    <p class="error"><?= $error ?></p>
-  <?php endif; ?>
-
-  <?php if (count($recommendations) > 0): ?>
-    <section class="menu" id="recommended">
-      <h2>YOUR <span>RECOMMENDATIONS</span></h2>
-      <div class="box-container">
-        <?php foreach ($recommendations as $item): ?>
-          <form action="customize.php" method="post">
-            <input type="hidden" name="id" value="<?= $item['id'] ?>">
-            <input type="hidden" name="from_section" value="<?= $item['category'] ?>">
-            <div class="box">
-              <img loading="lazy" src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
-              <h3><?= htmlspecialchars($item['name']) ?></h3>
-              <div class="price">
-                RM<?= number_format($item['price'], 2) ?>
-                <?php if ($item['category'] === 'menu' && isset($item['old_price']) && $item['old_price'] > 0): ?>
-                  <span>RM<?= number_format($item['old_price'], 2) ?></span>
-                <?php endif; ?>
-              </div>
-              <button type="submit" class="btn"><?= $item['category'] === 'menu' ? 'Buy' : 'Add to Cart' ?></button>
-            </div>
-          </form>
-        <?php endforeach; ?>
       </div>
-    </section>
-  <?php endif; ?>
 
+      <label for="flavour" class="block text-sm text-foam mb-1.5">Flavour</label>
+      <input type="text" name="flavour" id="flavour" placeholder="e.g. Nutty, Sweet, Bold"
+        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema placeholder-foam focus:outline-none focus:border-caramel">
+
+      <label for="currentMood" class="block text-sm text-foam mb-1.5">Current mood</label>
+      <input type="text" name="currentMood" id="currentMood" placeholder="e.g. focused, relaxed"
+        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema placeholder-foam focus:outline-none focus:border-caramel">
+
+      <label for="currentWeather" class="block text-sm text-foam mb-1.5">Current weather</label>
+      <input type="text" name="currentWeather" id="currentWeather" placeholder="e.g. sunny, rainy"
+        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-6 text-crema placeholder-foam focus:outline-none focus:border-caramel">
+
+      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Get recommendation</button>
+
+      <?php if (!empty($error)): ?>
+        <p class="text-red-400 text-sm text-center mt-4"><?= htmlspecialchars($error) ?></p>
+      <?php endif; ?>
+    </form>
+
+    <?php if ($searched && count($recommendations) === 0): ?>
+      <div id="recommended" class="mt-10 bg-roast border border-bean rounded-2xl p-8 text-center max-w-xl">
+        <p class="font-semibold mb-2">No exact match this time</p>
+        <p class="text-foam text-sm">Try fewer filters, or <a href="user_dashboard.php" class="text-caramel underline hover:text-crema">browse the full menu</a>.</p>
+      </div>
+    <?php elseif (count($recommendations) > 0): ?>
+      <section id="recommended" class="mt-12">
+        <h2 class="text-xl font-semibold text-caramel tracking-widest mb-6">YOUR MATCHES</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <?php foreach ($recommendations as $item): ?>
+            <form action="customize.php" method="post">
+              <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+              <input type="hidden" name="from_section" value="<?= htmlspecialchars($item['category']) ?>">
+              <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
+                <img loading="lazy" src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
+                  class="w-full h-44 object-cover">
+                <div class="p-5 flex flex-col grow">
+                  <div class="flex items-start justify-between gap-2 mb-1">
+                    <h3 class="font-semibold"><?= htmlspecialchars($item['name']) ?></h3>
+                    <span class="text-caramel font-semibold whitespace-nowrap">RM<?= number_format($item['price'], 2) ?></span>
+                  </div>
+                  <p class="text-foam text-sm mb-4 grow"><?= htmlspecialchars($item['description'] ?? '') ?></p>
+                  <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2 rounded-lg hover:bg-crema transition">Customise &amp; order</button>
+                </div>
+              </div>
+            </form>
+          <?php endforeach; ?>
+        </div>
+      </section>
+    <?php endif; ?>
+  </main>
+
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>
 
 </html>

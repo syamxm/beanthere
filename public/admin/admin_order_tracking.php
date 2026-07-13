@@ -7,7 +7,6 @@ if (!isset($_SESSION['current_admin'])) {
 
 require_once __DIR__ . '/../../src/dbconn.php';
 
-// Fetch all orders and usernames
 $sql = "SELECT o.*, u.username FROM orders o JOIN users u ON o.userID = u.userID ORDER BY o.orderTime DESC";
 $result = $conn->query($sql);
 
@@ -16,123 +15,54 @@ while ($row = $result->fetch_assoc()) {
   $ordersByUser[$row['username']][] = $row;
 }
 $conn->close();
-?>
 
+$pageTitle = 'All orders - Bean There Admin';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Admin - All Orders | Bean There</title>
-  <link rel="stylesheet" href="../assets/style_scrollbar.css" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #fdfaf6;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .user-section {
-      margin-bottom: 2.5rem;
-    }
-
-    .user-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 0.5rem;
-    }
-
-    .order-card {
-      background-color: #fff7f0;
-      border: 1px solid #ddd;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .status {
-      font-weight: bold;
-      padding: 0.25rem 0.75rem;
-      border-radius: 1rem;
-      display: inline-block;
-      font-size: 0.95rem;
-    }
-
-    .status.processing {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .status.in-transit {
-      background-color: #bee3f8;
-      color: #1e40af;
-    }
-
-    .status.complete {
-      background-color: #d1fae5;
-      color: #065f46;
-    }
-
-    .empty-msg {
-      color: #999;
-      text-align: center;
-      margin-top: 2rem;
-    }
-  </style>
+  <?php include __DIR__ . '/../../src/partials/admin_head.php'; ?>
 </head>
 
-<body>
-  <div class="container">
-    <a href="admin_home.php" class="fixed top-5 left-5 z-50 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
-      ← Go Back
-    </a>
-    <h2 class="text-3xl font-bold text-center mb-8">All Customer Orders</h2>
+<body class="bg-espresso text-crema font-sans min-h-screen">
+  <?php include __DIR__ . '/../../src/partials/admin_nav.php'; ?>
+
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <h1 class="text-2xl font-bold mb-8">All customer orders</h1>
 
     <?php if (empty($ordersByUser)): ?>
-      <p class="empty-msg">No orders from any users.</p>
+      <p class="text-foam">No orders from any users.</p>
     <?php else: ?>
       <?php foreach ($ordersByUser as $username => $orders): ?>
-        <div class="user-section">
-          <div class="user-title">User: <?= htmlspecialchars($username) ?></div>
-
+        <h2 class="text-caramel font-semibold mt-8 mb-3"><i class="fa-solid fa-user mr-2"></i><?= htmlspecialchars($username) ?></h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <?php foreach ($orders as $order):
             $statusRaw = strtolower($order['orderStatus']);
-            $statusClass = 'processing';
-            $statusText = ucfirst($order['orderStatus']);
-
             if (in_array($statusRaw, ['out for delivery', 'ready for pickup'])) {
-              $statusClass = 'in-transit';
+              $badge = 'bg-blue-400/20 text-blue-300';
             } elseif (in_array($statusRaw, ['delivered', 'done pickup'])) {
-              $statusClass = 'complete';
-            } elseif (in_array($statusRaw, ['order received', 'preparing'])) {
-              $statusClass = 'processing';
+              $badge = 'bg-green-400/20 text-green-300';
+            } else {
+              $badge = 'bg-caramel/20 text-caramel';
             }
           ?>
-            <div class="order-card">
-              <h3 class="text-xl font-semibold mb-2"><?= htmlspecialchars($order['name']) ?></h3>
-              <p>Quantity: <?= $order['qty'] ?></p>
-              <p>Total: RM <?= number_format($order['total'], 2) ?></p>
-              <p>Delivery Method: <?= htmlspecialchars($order['delivery']) ?></p>
-              <p>Ordered At: <?= date("Y-m-d H:i:s", strtotime($order['orderTime'])) ?></p>
-              <p class="mt-2">Status: <span class="status <?= $statusClass ?>"><?= $statusText ?></span></p>
+            <div class="bg-roast border border-bean rounded-2xl p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h3 class="font-semibold"><?= htmlspecialchars($order['name']) ?></h3>
+                <span class="text-xs font-semibold px-3 py-1 rounded-full <?= $badge ?>"><?= htmlspecialchars(ucwords($order['orderStatus'])) ?></span>
+              </div>
+              <p class="text-foam text-sm">
+                Qty <?= (int)$order['qty'] ?> · RM<?= number_format($order['total'], 2) ?> ·
+                <?= htmlspecialchars($order['delivery']) ?><br>
+                Ordered <?= htmlspecialchars(date("j M Y, g:ia", strtotime($order['orderTime']))) ?>
+              </p>
             </div>
           <?php endforeach; ?>
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
-  </div>
+  </main>
 </body>
 
 </html>

@@ -112,6 +112,7 @@ CREATE TABLE `member_vouchers` (
 CREATE TABLE `menu_items` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
   `image_path` varchar(255) NOT NULL,
   `price` decimal(6,2) NOT NULL,
   `old_price` decimal(6,2) DEFAULT NULL,
@@ -131,20 +132,22 @@ CREATE TABLE `menu_items` (
 -- Dumping data for table `menu_items`
 --
 
-INSERT INTO `menu_items` (`id`, `name`, `image_path`, `price`, `old_price`, `category`, `roast_level`, `caffeine_level`, `flavour_profile`, `origin`, `drink_type`, `sugar_level`, `bestMood`, `bestWeather`, `stock`) VALUES
-(2, 'Latte', 'assets/images/latte.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Smooth\",\"Creamy\"]', 'Colombia', 'Iced', '100%', '[\"calm\",\"focused\",\"relaxed\"]', '[\"mildly cool\",\"cloudy weather\"]', 7),
-(3, 'Cappuccino', 'assets/images/cappuccino.jpg', 12.00, 15.00, 'menu', 'dark', 'medium', '[\"Bold\",\"Rich Espresso Taste\"]', 'Colombia', 'Iced', '0%', '[\"energized\",\"sociable\"]', '[\"cool mornings\",\"breezy afternoons\"]', 0),
-(5, 'Caramel Macchiato', 'assets/images/caramel-macchiato.jpg', 12.00, 15.00, 'menu', 'medium', 'medium', '[\"Sweet\",\"Caramel\",\"Vanilla\"]', 'Colombia', 'Iced', '0%', '[\"sweet craving\",\"indulgent\",\"romantic\"]', '[\"light rain\",\"chilly evenings\"]', 1),
-(6, 'Americano', 'assets/images/americano.jpg', 12.00, 15.00, 'menu', 'dark', 'high', '[\"Bold\",\"Bitter\",\"Rich Espresso Taste\"]', 'Sumatra', 'Hot', '0%', '[\"serious\",\"contemplative\",\"productive\"]', '[\"cold\",\"rainy\",\"snowy\"]', 1),
-(18, 'Colombian Supremo', 'assets/images/colombian-supremo.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(19, 'Ethopian Yirgacheffe', 'assets/images/ethopian-yirgacheffe.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(20, 'Vietnam Robusta', 'assets/images/vietnam-robusta.jpg', 30.00, 0.00, 'product', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1),
-(21, 'Matcha Latte', 'assets/images/matcha-latte.jpg', 12.00, 15.00, 'menu', '', 'low', '[\"Earthy\",\"Grassy\",\"Sweet\"]', '', 'Iced', '0%', '[\"spiritual\",\"serene\"]', '[\"spring mornings\",\"sunny\",\"cool\"]', 2),
-(22, 'Hazelnut Latte', 'assets/images/hazelnut-latte.jpg', 13.00, 15.00, 'menu', 'medium', 'medium', '[\"Nutty\",\"Sweet\",\"Creamy\"]', 'Colombia', 'Iced', '50%', '[\"calm\",\"comforted\"]', '[\"rainy\",\"mildly cool\"]', 10),
-(23, 'Vanilla Cold Brew', 'assets/images/vanilla-cold-brew.jpg', 14.00, 16.00, 'menu', 'dark', 'high', '[\"Vanilla\",\"Bold\",\"Smooth\"]', 'Ethiopia', 'Iced', '0%', '[\"focused\",\"energized\"]', '[\"sunny\",\"cool mornings\"]', 8),
-(24, 'Honey Americano', 'assets/images/honey-americano.jpg', 12.00, 13.50, 'menu', 'medium', 'medium', '[\"Honey\",\"Bitter\",\"Sweet\"]', 'Brazil', 'Hot', '25%', '[\"productive\",\"warm-hearted\"]', '[\"cold\",\"rainy\"]', 5),
-(25, 'Caramel Frappe', 'assets/images/caramel-frappe.jpg', 15.00, 17.00, 'menu', 'light', 'low', '[\"Caramel\",\"Milky\",\"Chilled\"]', 'Colombia', 'Iced', '75%', '[\"happy\",\"playful\"]', '[\"hot\",\"sunny\"]', 7),
-(26, 'Mocha', 'assets/images/mocha.jpg', 19.99, 12.00, 'menu', 'Medium', 'High', '[\"Smooth\",\"Creamy\"]', 'Brazil', NULL, NULL, '[\"calm\",\"focused\",\"relaxed\"]', '[\"cold\",\"rainy\",\"snowy\"]', 10);
+INSERT INTO `menu_items` (`id`, `name`, `description`, `image_path`, `price`, `old_price`, `category`, `roast_level`, `caffeine_level`, `flavour_profile`, `origin`, `drink_type`, `sugar_level`, `bestMood`, `bestWeather`, `stock`) VALUES
+(1, 'Espresso', 'Double shot of our house blend. Dark, syrupy, no distractions.', 'assets/images/espresso.jpg', 7.00, NULL, 'menu', 'dark', 'high', '[\"Bold\",\"Intense\",\"Bitter\"]', 'Sumatra', 'Hot', '0%', '[\"focused\",\"productive\"]', '[\"cold\",\"rainy\"]', 50),
+(2, 'Latte', 'Silky steamed milk over a double shot. Our most-ordered cup.', 'assets/images/latte.jpg', 11.00, NULL, 'menu', 'medium', 'medium', '[\"Smooth\",\"Creamy\"]', 'Colombia', 'Hot', '25%', '[\"calm\",\"focused\",\"relaxed\"]', '[\"mildly cool\",\"cloudy weather\"]', 40),
+(3, 'Cappuccino', 'Equal parts espresso, steamed milk and foam, dusted with cocoa.', 'assets/images/cappuccino.jpg', 11.00, NULL, 'menu', 'dark', 'medium', '[\"Bold\",\"Foamy\",\"Rich Espresso Taste\"]', 'Colombia', 'Hot', '0%', '[\"energized\",\"sociable\"]', '[\"cool mornings\",\"breezy afternoons\"]', 40),
+(5, 'Caramel Macchiato', 'Vanilla milk marked with espresso and a caramel drizzle, over ice.', 'assets/images/caramel-macchiato.jpg', 13.50, NULL, 'menu', 'medium', 'medium', '[\"Sweet\",\"Caramel\",\"Vanilla\"]', 'Colombia', 'Iced', '75%', '[\"sweet craving\",\"indulgent\",\"romantic\"]', '[\"light rain\",\"chilly evenings\"]', 35),
+(6, 'Americano', 'Double espresso lengthened with hot water. Clean and bracing.', 'assets/images/americano.jpg', 9.00, NULL, 'menu', 'dark', 'high', '[\"Bold\",\"Bitter\",\"Rich Espresso Taste\"]', 'Sumatra', 'Hot', '0%', '[\"serious\",\"contemplative\",\"productive\"]', '[\"cold\",\"rainy\"]', 45),
+(18, 'Colombian Supremo Beans 250g', 'Whole beans, medium roast. Caramel sweetness with a walnut finish.', 'assets/images/colombian-supremo.jpg', 32.00, NULL, 'product', NULL, NULL, NULL, 'Colombia', NULL, NULL, NULL, NULL, 12),
+(19, 'Ethiopian Yirgacheffe Beans 250g', 'Whole beans, light roast. Floral, tea-like, bright citrus notes.', 'assets/images/ethopian-yirgacheffe.jpg', 38.00, NULL, 'product', NULL, NULL, NULL, 'Ethiopia', NULL, NULL, NULL, NULL, 8),
+(20, 'Vietnam Robusta Beans 250g', 'Whole beans, dark roast. Heavy body and serious caffeine.', 'assets/images/vietnam-robusta.jpg', 26.00, NULL, 'product', NULL, NULL, NULL, 'Vietnam', NULL, NULL, NULL, NULL, 15),
+(21, 'Matcha Latte', 'Stone-ground matcha whisked into cold milk. Our coffee-free pick.', 'assets/images/matcha-latte.jpg', 13.00, NULL, 'menu', NULL, 'low', '[\"Earthy\",\"Grassy\",\"Sweet\"]', 'Japan', 'Iced', '50%', '[\"spiritual\",\"serene\"]', '[\"spring mornings\",\"sunny\",\"cool\"]', 30),
+(22, 'Hazelnut Latte', 'House latte with toasted hazelnut syrup. Dessert-adjacent, not cloying.', 'assets/images/hazelnut-latte.jpg', 12.50, NULL, 'menu', 'medium', 'medium', '[\"Nutty\",\"Sweet\",\"Creamy\"]', 'Colombia', 'Hot', '50%', '[\"calm\",\"comforted\"]', '[\"rainy\",\"mildly cool\"]', 35),
+(23, 'Vanilla Cold Brew', '18-hour cold brew over ice with a shot of vanilla. Smooth, strong.', 'assets/images/vanilla-cold-brew.jpg', 13.50, NULL, 'menu', 'dark', 'high', '[\"Vanilla\",\"Bold\",\"Smooth\"]', 'Ethiopia', 'Iced', '25%', '[\"focused\",\"energized\"]', '[\"sunny\",\"cool mornings\"]', 25),
+(24, 'Honey Americano', 'Americano sweetened with raw honey. Bitter meets floral.', 'assets/images/honey-americano.jpg', 10.50, NULL, 'menu', 'medium', 'medium', '[\"Honey\",\"Bitter\",\"Sweet\"]', 'Brazil', 'Hot', '25%', '[\"productive\",\"warm-hearted\"]', '[\"cold\",\"rainy\"]', 40),
+(25, 'Caramel Frappe', 'Blended ice, milk and caramel topped with cream. Basically a treat.', 'assets/images/caramel-frappe.jpg', 14.00, 16.00, 'menu', 'light', 'low', '[\"Caramel\",\"Milky\",\"Chilled\"]', 'Colombia', 'Iced', '100%', '[\"happy\",\"playful\"]', '[\"hot\",\"sunny\"]', 30),
+(26, 'Mocha', 'Espresso and dark chocolate under steamed milk. Rich but balanced.', 'assets/images/mocha.jpg', 12.50, NULL, 'menu', 'medium', 'high', '[\"Chocolatey\",\"Rich\",\"Smooth\"]', 'Brazil', 'Hot', '50%', '[\"calm\",\"comforted\"]', '[\"cold\",\"rainy\"]', 35),
+(27, 'Classic Iced Coffee', 'Chilled house blend with milk and a touch of palm sugar.', 'assets/images/iced-coffee.jpg', 8.50, NULL, 'menu', 'medium', 'medium', '[\"Refreshing\",\"Lightly Sweet\",\"Smooth\"]', 'Brazil', 'Iced', '50%', '[\"easygoing\",\"social\"]', '[\"hot\",\"sunny\"]', 45);
 
 -- --------------------------------------------------------
 
