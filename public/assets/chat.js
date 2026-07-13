@@ -23,8 +23,8 @@
     if (source) {
       var badge = document.createElement('span');
       badge.className = source === 'model'
-        ? 'mt-1 ml-1 text-[10px] uppercase tracking-wide text-caramel/80'
-        : 'mt-1 ml-1 text-[10px] uppercase tracking-wide text-foam/70';
+        ? 'mt-1.5 ml-1 inline-block text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-caramel/20 text-caramel border border-caramel/40'
+        : 'mt-1.5 ml-1 inline-block text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-foam/10 text-foam border border-foam/30';
       badge.textContent = source === 'model' ? 'AI generated' : 'Fallback answer';
       row.appendChild(badge);
     }

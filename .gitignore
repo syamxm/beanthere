@@ -2,6 +2,7 @@
 logs/
 vendor/
 *.log
+node_modules/*
 status_log.txt
 voucher_log.txt
 beantheredb-fullData-backup.sql
