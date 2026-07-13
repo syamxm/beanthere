@@ -1,36 +1,16 @@
 <?php
+
 session_start();
 
-require_once __DIR__ . '/../src/dbconn.php';
-require_once __DIR__ . '/../src/get_recommendation.php';
+require_once __DIR__ . '/../src/csrf.php';
 
-$recommendations = [];
-$error = "";
-$searched = false;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $_SESSION['form_data'] = $_POST;
-  header("Location: recommendation.php#recommended");
-  exit;
-}
-
-if (isset($_SESSION['form_data'])) {
-  $answers = [
-    'roast' => trim($_SESSION['form_data']['roast'] ?? ''),
-    'caffeine' => trim($_SESSION['form_data']['caffeine'] ?? ''),
-    'flavour' => trim($_SESSION['form_data']['flavour'] ?? ''),
-    'currentMood' => trim($_SESSION['form_data']['currentMood'] ?? ''),
-    'currentWeather' => trim($_SESSION['form_data']['currentWeather'] ?? ''),
-  ];
-  unset($_SESSION['form_data']);
-
-  if (implode('', $answers) === '') {
-    $error = "Fill in at least one field to get a recommendation.";
-  } else {
-    $searched = true;
-    $recommendations = get_recommendation($answers);
-  }
-}
+$quickReplies = [
+  'Taste' => ['Something bitter', 'Something sweet', 'Something fruity'],
+  'Milk' => ['With milk', 'Black, no milk'],
+  'Temperature' => ['Hot', 'Iced'],
+  'Caffeine' => ['Wake me up', 'Low caffeine'],
+  'Budget' => ['Under RM10'],
+];
 
 $pageTitle = 'Recommendation - Bean There';
 ?>
@@ -44,84 +24,49 @@ $pageTitle = 'Recommendation - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-6xl mx-auto w-full px-4 py-10">
-    <h1 class="text-3xl font-bold mb-2">Find your cup</h1>
-    <p class="text-foam text-sm mb-8">Tell us what you're in the mood for and we'll match it against our menu.</p>
+  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+    <h1 class="text-3xl font-bold mb-2">Ask our barista</h1>
+    <p class="text-foam text-sm mb-8">Tell me what you feel like and I'll pick something off the menu.</p>
 
-    <form action="recommendation.php" method="post" class="bg-roast border border-bean rounded-2xl p-6 max-w-xl">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="roast" class="block text-sm text-foam mb-1.5">Roast level</label>
-          <select name="roast" id="roast" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
-            <option value="">No preference</option>
-            <option value="light">Light</option>
-            <option value="medium">Medium</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
-        <div>
-          <label for="caffeine" class="block text-sm text-foam mb-1.5">Caffeine level</label>
-          <select name="caffeine" id="caffeine" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
-            <option value="">No preference</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+    <div class="bg-roast/40 border border-bean rounded-2xl p-4 sm:p-6">
+      <div id="chatLog" class="flex flex-col gap-3 h-[26rem] overflow-y-auto pr-1 mb-4">
+        <div class="flex justify-start">
+          <div class="max-w-[80%] bg-roast border border-bean rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm">
+            Hi, I'm the Bean There barista. Sweet or bitter? Hot or iced? Tell me anything and I'll find your cup.
+          </div>
         </div>
       </div>
 
-      <label for="flavour" class="block text-sm text-foam mb-1.5">Flavour</label>
-      <input type="text" name="flavour" id="flavour" placeholder="e.g. Nutty, Sweet, Bold"
-        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema placeholder-foam focus:outline-none focus:border-caramel">
-
-      <label for="currentMood" class="block text-sm text-foam mb-1.5">Current mood</label>
-      <input type="text" name="currentMood" id="currentMood" placeholder="e.g. focused, relaxed"
-        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema placeholder-foam focus:outline-none focus:border-caramel">
-
-      <label for="currentWeather" class="block text-sm text-foam mb-1.5">Current weather</label>
-      <input type="text" name="currentWeather" id="currentWeather" placeholder="e.g. sunny, rainy"
-        class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-6 text-crema placeholder-foam focus:outline-none focus:border-caramel">
-
-      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Get recommendation</button>
-
-      <?php if (!empty($error)): ?>
-        <p class="text-red-400 text-sm text-center mt-4"><?= htmlspecialchars($error) ?></p>
-      <?php endif; ?>
-    </form>
-
-    <?php if ($searched && count($recommendations) === 0): ?>
-      <div id="recommended" class="mt-10 bg-roast border border-bean rounded-2xl p-8 text-center max-w-xl">
-        <p class="font-semibold mb-2">No exact match this time</p>
-        <p class="text-foam text-sm">Try fewer filters, or <a href="user_dashboard.php" class="text-caramel underline hover:text-crema">browse the full menu</a>.</p>
-      </div>
-    <?php elseif (count($recommendations) > 0): ?>
-      <section id="recommended" class="mt-12">
-        <h2 class="text-xl font-semibold text-caramel tracking-widest mb-6">YOUR MATCHES</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <?php foreach ($recommendations as $item): ?>
-            <form action="customize.php" method="post">
-              <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
-              <input type="hidden" name="from_section" value="<?= htmlspecialchars($item['category']) ?>">
-              <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
-                <img loading="lazy" src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
-                  class="w-full h-44 object-cover">
-                <div class="p-5 flex flex-col grow">
-                  <div class="flex items-start justify-between gap-2 mb-1">
-                    <h3 class="font-semibold"><?= htmlspecialchars($item['name']) ?></h3>
-                    <span class="text-caramel font-semibold whitespace-nowrap">RM<?= number_format($item['price'], 2) ?></span>
-                  </div>
-                  <p class="text-foam text-sm mb-4 grow"><?= htmlspecialchars($item['description'] ?? '') ?></p>
-                  <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2 rounded-lg hover:bg-crema transition">Customise &amp; order</button>
-                </div>
-              </div>
-            </form>
+      <div class="flex flex-wrap gap-2 mb-4">
+        <?php foreach ($quickReplies as $group => $replies): ?>
+          <?php foreach ($replies as $reply): ?>
+            <button type="button" data-quick-reply="<?= htmlspecialchars($reply) ?>"
+              aria-label="<?= htmlspecialchars("$group: $reply") ?>"
+              class="border border-bean bg-espresso text-crema text-xs sm:text-sm px-3 py-1.5 rounded-full hover:border-caramel hover:text-caramel transition">
+              <?= htmlspecialchars($reply) ?>
+            </button>
           <?php endforeach; ?>
-        </div>
-      </section>
-    <?php endif; ?>
+        <?php endforeach; ?>
+      </div>
+
+      <form id="chatForm" data-csrf="<?= htmlspecialchars(csrf_token()) ?>" class="flex gap-2">
+        <label for="chatInput" class="sr-only">Message the barista</label>
+        <input type="text" id="chatInput" name="message" maxlength="300" autocomplete="off"
+          placeholder="e.g. something iced and not too sweet"
+          class="grow bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema placeholder-foam focus:outline-none focus:border-caramel">
+        <button type="submit" class="bg-caramel text-espresso font-semibold px-4 sm:px-5 py-2.5 rounded-lg hover:bg-crema transition">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-foam text-xs mt-4">
+      Prefer to browse? <a href="user_dashboard.php" class="text-caramel underline hover:text-crema">See the full menu</a>.
+    </p>
   </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
+  <script src="assets/chat.js"></script>
 </body>
 
 </html>
