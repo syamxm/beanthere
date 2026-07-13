@@ -3,8 +3,16 @@ session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/settings.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+  header("Location: user_dashboard.php");
+  exit;
+}
+
+if (!store_status()['open']) {
+  $_SESSION['message'] = "We're closed right now — ordering is paused until we reopen.";
+  $_SESSION['success'] = false;
   header("Location: user_dashboard.php");
   exit;
 }

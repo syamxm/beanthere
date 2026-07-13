@@ -9,6 +9,9 @@ if (!isset($_SESSION['current_user'])) {
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
 
+$flashMessage = $_SESSION['message'] ?? '';
+unset($_SESSION['message'], $_SESSION['success']);
+
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
 $stmt->bind_param("s", $username);
@@ -99,6 +102,10 @@ $pageTitle = 'Cart - Bean There';
   <main class="grow max-w-6xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">Your cart</h1>
     <p class="text-foam text-sm mb-8">Tick the items you want to check out.</p>
+
+    <?php if (!empty($flashMessage)): ?>
+      <p class="text-sm mb-4 text-red-400"><?= htmlspecialchars($flashMessage) ?></p>
+    <?php endif; ?>
 
     <?php if (count($items) === 0): ?>
       <div class="bg-roast border border-bean rounded-2xl p-10 text-center">

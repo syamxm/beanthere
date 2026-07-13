@@ -8,6 +8,7 @@ if (!isset($_SESSION['current_user'])) {
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/settings.php';
 
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
@@ -19,6 +20,13 @@ $stmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   csrf_verify();
+
+  if (!store_status()['open']) {
+    $_SESSION['message'] = "We're closed right now — checkout is paused until we reopen.";
+    $_SESSION['success'] = false;
+    header("Location: cart.php");
+    exit;
+  }
 
   $paymentMethod = $_POST['paymentMethod'];
   $selectedIDs = $_POST['selected_ids'] ?? [];
