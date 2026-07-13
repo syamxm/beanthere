@@ -9,6 +9,7 @@ if (!isset($_SESSION['current_user'])) {
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/settings.php';
+require_once __DIR__ . '/../src/loyalty.php';
 
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
@@ -72,11 +73,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $voucherStmt->close();
   }
 
+  $conn->begin_transaction();
+  try {
+
+  $subtotal = 0;
   $firstRow = true;
   while ($row = $result->fetch_assoc()) {
     $initialStatus = "Order Received";
 
     $rowTotal = $row['total'] * (1 - $discountPercent / 100);
+    $subtotal += $rowTotal;
     if ($firstRow) {
       $rowTotal += $deliveryCharge;
       $firstRow = false;
@@ -125,10 +131,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $updateVoucher->close();
   }
 
+  $earnedPoints = 0;
+  if ($subtotal > 0) {
+    $tierStmt = $conn->prepare("SELECT lifetime_points FROM users WHERE userID = ? FOR UPDATE");
+    $tierStmt->bind_param("i", $userID);
+    $tierStmt->execute();
+    $tierStmt->bind_result($lifetimePoints);
+    $tierStmt->fetch();
+    $tierStmt->close();
+
+    $tier = get_tier((int)$lifetimePoints);
+    $earnedPoints = (int)floor($subtotal * $tier['multiplier']);
+    if ($earnedPoints > 0) {
+      award_points($conn, $userID, $earnedPoints, 'Order');
+    }
+  }
+
+  $conn->commit();
+  } catch (mysqli_sql_exception $e) {
+    $conn->rollback();
+    $_SESSION['message'] = "Payment could not be completed — nothing was charged. Please try again.";
+    $_SESSION['success'] = false;
+    header("Location: cart.php");
+    exit;
+  }
+
   $stmt->close();
   $conn->close();
 
-  $paymentMessage = json_encode("Payment via $paymentMethod completed successfully!", JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+  $successText = "Payment via $paymentMethod completed successfully!";
+  if ($earnedPoints > 0) {
+    $successText .= " You earned $earnedPoints points!";
+  }
+  $paymentMessage = json_encode($successText, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
   echo "<script>
     alert($paymentMessage);
     window.location.href = 'user_order_tracking.php';
