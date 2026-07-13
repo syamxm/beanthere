@@ -8,6 +8,7 @@ if (!isset($_SESSION["current_user"])) {
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/loyalty.php';
 
 $current_username = $_SESSION["current_user"];
 
@@ -15,7 +16,7 @@ $flash_success = $_SESSION['flash_success'] ?? "";
 $flash_errors = $_SESSION['flash_errors'] ?? [];
 unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
 
-$sql = "SELECT userID, username, password, phone_number, email FROM users WHERE username = ?";
+$sql = "SELECT userID, username, password, phone_number, email, lifetime_points FROM users WHERE username = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $current_username);
 $stmt->execute();
@@ -116,6 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $conn->close();
 
+$tier = get_tier((int)$user['lifetime_points']);
+
 $pageTitle = 'My profile - Bean There';
 ?>
 <!DOCTYPE html>
@@ -130,7 +133,14 @@ $pageTitle = 'My profile - Bean There';
 
   <main class="grow flex items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
-      <h1 class="text-2xl font-bold mb-6">My profile</h1>
+      <h1 class="text-2xl font-bold mb-4">My profile</h1>
+
+      <div class="flex items-center gap-3 mb-6">
+        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-caramel text-espresso uppercase tracking-widest">
+          <i class="fa-solid fa-medal mr-1"></i><?= htmlspecialchars($tier['name']) ?> member
+        </span>
+        <span class="text-foam text-sm"><?= number_format($user['lifetime_points']) ?> lifetime points · <a href="rewards.php" class="text-caramel underline hover:text-crema">rewards</a></span>
+      </div>
 
       <?php foreach ($flash_errors as $error): ?>
         <p class="text-red-400 text-sm mb-2"><?= htmlspecialchars($error) ?></p>

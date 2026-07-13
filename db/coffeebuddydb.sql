@@ -215,7 +215,8 @@ CREATE TABLE `users` (
   `reg_date` datetime NOT NULL DEFAULT current_timestamp(),
   `phone_number` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
-  `authentication_status` tinyint(1) NOT NULL DEFAULT 0
+  `authentication_status` tinyint(1) NOT NULL DEFAULT 0,
+  `lifetime_points` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -246,7 +247,50 @@ CREATE TABLE `vouchers` (
 INSERT INTO `vouchers` (`voucherID`, `code`, `discount_value`, `created_by`, `valid_from`, `valid_until`, `status`) VALUES
 (8, 'BT555', 5.00, 1, '2025-06-30 00:00:00', '2025-07-12 00:00:00', 'active'),
 (21, 'BT450', 22.00, 1, '2025-07-18 00:00:00', '2025-07-27 00:00:00', 'active'),
-(22, 'Mt123', 33.00, 1, '2025-07-17 00:00:00', '2025-07-31 00:00:00', 'active');
+(22, 'Mt123', 33.00, 1, '2025-07-17 00:00:00', '2025-07-31 00:00:00', 'active'),
+(23, 'REWARD5', 5.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active'),
+(24, 'REWARD15', 15.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active'),
+(25, 'REWARD25', 25.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `loyalty_ledger`
+--
+
+CREATE TABLE `loyalty_ledger` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userID` int(11) NOT NULL,
+  `points` int(11) NOT NULL,
+  `reason` varchar(100) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `userID` (`userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rewards`
+--
+
+CREATE TABLE `rewards` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `points_cost` int(11) NOT NULL,
+  `voucherID` int(11) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rewards`
+--
+
+INSERT INTO `rewards` (`id`, `name`, `points_cost`, `voucherID`) VALUES
+(1, '5% off any order', 100, 23),
+(2, '15% off any order', 300, 24),
+(3, '25% off any order', 600, 25);
 
 --
 -- Indexes for dumped tables
@@ -361,7 +405,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vouchers`
 --
 ALTER TABLE `vouchers`
-  MODIFY `voucherID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `voucherID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

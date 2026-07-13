@@ -8,6 +8,7 @@ if (!isset($_SESSION['current_admin'])) {
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
 require_once __DIR__ . '/../../src/settings.php';
+require_once __DIR__ . '/../../src/loyalty.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_verify();
@@ -25,6 +26,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $storeOpen = get_setting($conn, 'store_open') !== '0';
 $closedMessage = get_setting($conn, 'closed_message') ?? '';
+
+$result = $conn->query("SELECT
+    COALESCE(SUM(CASE WHEN points > 0 THEN points END), 0) AS issued,
+    COALESCE(SUM(CASE WHEN points < 0 THEN -points END), 0) AS redeemed
+  FROM loyalty_ledger");
+$loyaltyTotals = $result->fetch_assoc();
+
+$tierCounts = [];
+foreach (array_reverse(LOYALTY_TIERS) as $tier) {
+  $tierCounts[$tier['name']] = 0;
+}
+$result = $conn->query("SELECT lifetime_points FROM users");
+while ($row = $result->fetch_assoc()) {
+  $tierCounts[get_tier((int)$row['lifetime_points'])['name']]++;
+}
 mysqli_close($conn);
 
 $flash = $_SESSION['message'] ?? '';
@@ -87,6 +103,26 @@ $sections = [
         </div>
         <button type="submit" class="btn-caramel self-start">Save store status</button>
       </form>
+    </div>
+
+    <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
+      <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">LOYALTY</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+        <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
+          <p class="text-2xl font-bold text-caramel"><?= number_format($loyaltyTotals['issued']) ?></p>
+          <p class="text-foam text-xs">points issued</p>
+        </div>
+        <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
+          <p class="text-2xl font-bold text-caramel"><?= number_format($loyaltyTotals['redeemed']) ?></p>
+          <p class="text-foam text-xs">points redeemed</p>
+        </div>
+        <?php foreach ($tierCounts as $tierName => $count): ?>
+          <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
+            <p class="text-2xl font-bold text-caramel"><?= number_format($count) ?></p>
+            <p class="text-foam text-xs"><?= htmlspecialchars($tierName) ?> users</p>
+          </div>
+        <?php endforeach; ?>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -60,9 +60,9 @@ $pageTitle = 'Vouchers - Bean There Admin';
                 <td><?= (int)$v['voucherID'] ?></td>
                 <td><?= htmlspecialchars($v['code']) ?></td>
                 <td><?= number_format($v['discount_value'], 2) ?></td>
-                <td><?= htmlspecialchars($v['created_by']) ?></td>
-                <td><?= htmlspecialchars($v['valid_from']) ?></td>
-                <td><?= htmlspecialchars($v['valid_until']) ?></td>
+                <td><?= htmlspecialchars($v['created_by'] ?? '—') ?></td>
+                <td><?= htmlspecialchars($v['valid_from'] ?? '—') ?></td>
+                <td><?= htmlspecialchars($v['valid_until'] ?? '—') ?></td>
                 <td><?= htmlspecialchars(ucfirst($v['status'])) ?></td>
                 <td><a class="btn-outline" href="edit_voucher.php?voucherID=<?= (int)$v['voucherID'] ?>">Edit</a></td>
                 <td>
