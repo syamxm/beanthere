@@ -1,150 +1,58 @@
 <?php
-
 session_start();
 if (!isset($_SESSION['current_admin'])) {
   header('Location: admin_login.php');
   exit();
 }
-?>
 
+require_once __DIR__ . '/../../src/dbconn.php';
+
+$admins = [];
+$result = mysqli_query($conn, "SELECT id, username, reg_date FROM admins ORDER BY id");
+while ($row = mysqli_fetch_assoc($result)) {
+  $admins[] = $row;
+}
+mysqli_close($conn);
+
+$pageTitle = 'Admins - Bean There Admin';
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <meta charset="ISO-8859-1">
-  <title>Registered Admins</title>
-  <style>
-    body {
-      background-color: #121212;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      padding: 120px 20px 20px 20px;
-      margin: 0;
-    }
-
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: #1f1f1f;
-      padding: 20px 20px 10px 20px;
-      z-index: 999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-    }
-
-    .back-link {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #c49b63;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    h1 {
-      color: #c49b63;
-      margin: 0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 30px;
-    }
-
-    th,
-    td {
-      border: 1px solid #333;
-      padding: 12px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #1f1f1f;
-      color: #c49b63;
-    }
-
-    tr:nth-child(even) {
-      background-color: #1a1a1a;
-    }
-
-    tr:nth-child(odd) {
-      background-color: #222;
-    }
-
-    a.button {
-      display: inline-block;
-      padding: 6px 12px;
-      margin: 2px;
-      background-color: #c49b63;
-      color: #000;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a.button:hover {
-      background-color: #fff;
-    }
-  </style>
+  <?php include __DIR__ . '/../../src/partials/admin_head.php'; ?>
 </head>
 
-<body>
+<body class="bg-espresso text-crema font-sans min-h-screen">
+  <?php include __DIR__ . '/../../src/partials/admin_nav.php'; ?>
 
-  <header>
-    <a href="admin_home.php" class="back-link">⬅ Back to Admin Page</a>
-    <h1>Registered Admins</h1>
-  </header>
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <h1 class="text-2xl font-bold">Registered admins</h1>
+      <a href="admin_register.php" class="btn-caramel"><i class="fa-solid fa-user-plus mr-1"></i> Register admin</a>
+    </div>
 
-  <table border="1" cellspacing="4" cellpadding="4">
-    <tr>
-      <th>ID</th>
-      <th>Username</th>
-      <th>Password</th>
-      <th>Date Registered</th>
-    </tr>
-    <?php
-    // Connect to DB
-    require_once __DIR__ . '/../../src/dbconn.php';
-    $sqlUserInfo = "SELECT * FROM admins";
-    $result = mysqli_query($conn, $sqlUserInfo);
-    if (mysqli_num_rows($result) > 0) {
-      while ($row = mysqli_fetch_assoc($result)) {
-        $id = $row['id'];
-        $username = $row['username'];
-        $password = $row['password'];
-        $reg_date = $row['reg_date'];
-    ?>
-        <tr>
-          <td><?php echo $id ?></td>
-          <td><?php echo htmlspecialchars($username) ?></td>
-          <td><?php echo substr($password, 0, 2) . str_repeat('*', 6); ?></td>
-          <td><?php echo htmlspecialchars($reg_date) ?></td>
-        </tr>
-      <?php
-      }
-    } else {
-      ?>
-      <tr>
-        <td colspan="4">
-          <h2>No registered admins found.</h2>
-        </td>
-      </tr>
-    <?php
-    }
-    mysqli_close($conn);
-    ?>
-  </table>
-
+    <?php if (empty($admins)): ?>
+      <p class="text-foam">No registered admins found.</p>
+    <?php else: ?>
+      <div class="overflow-x-auto">
+        <table class="admin-table">
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Registered</th>
+          </tr>
+          <?php foreach ($admins as $row): ?>
+            <tr>
+              <td><?= (int)$row['id'] ?></td>
+              <td><?= htmlspecialchars($row['username']) ?></td>
+              <td class="whitespace-nowrap"><?= htmlspecialchars($row['reg_date'] ?? '—') ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+    <?php endif; ?>
+  </main>
 </body>
 
 </html>

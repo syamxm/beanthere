@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['current_user'])) {
-  header('Location: user_login.php');
+  header('Location: user_login.php?return=membership.php');
   exit();
 }
 
@@ -10,7 +10,6 @@ require_once __DIR__ . '/../src/dbconn.php';
 
 $username = $_SESSION['current_user'];
 
-// Get user info
 $stmt = $conn->prepare("SELECT userID, authentication_status FROM users WHERE username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -20,7 +19,6 @@ $stmt->close();
 
 $status = null;
 
-// Check membership
 $stmt = $conn->prepare("SELECT status FROM membership WHERE userID = ?");
 $stmt->bind_param("i", $userID);
 $stmt->execute();
@@ -28,13 +26,11 @@ $stmt->bind_result($status);
 $stmt->fetch();
 $stmt->close();
 
-// Handle application form
 $success = "";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $verified) {
   if ($status === null) {
-    // Insert new membership request
     $stmt = $conn->prepare("INSERT INTO membership (userID) VALUES (?)");
     $stmt->bind_param("i", $userID);
     if ($stmt->execute()) {
@@ -44,72 +40,70 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $verified) {
       $error = "Failed to apply for membership. Please try again.";
     }
     $stmt->close();
-  } else if ($status === "rejected" || $status = "revoked") {
-    // Reapply for membership
+  } elseif ($status === "rejected" || $status === "revoked") {
     $status = "pending";
     $update = $conn->prepare("UPDATE membership SET status = ? WHERE userID = ?");
     $update->bind_param("si", $status, $userID);
     if ($update->execute()) {
-      $success = "Membership Reapplication submitted! Please wait for admin approval.";
+      $success = "Reapplication submitted! Please wait for admin approval.";
     } else {
-      $update = "Failed to apply for membership. Please try again.";
+      $error = "Failed to apply for membership. Please try again.";
     }
     $update->close();
   } else {
     $error = "You have already applied or are a member.";
   }
 }
-?>
 
+$pageTitle = 'Membership - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Membership - Bean There</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body class="bg-yellow-50 text-gray-800">
-  <div class="max-w-xl mx-auto mt-16 bg-white p-8 rounded shadow">
-    <h2 class="text-2xl font-bold mb-4">Membership Status</h2>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-    <?php if (!$verified): ?>
-      <p class="text-red-600 font-medium">You must be a verified user to apply for membership.</p>
+  <main class="grow flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-md bg-roast border border-bean rounded-2xl p-8">
+      <h1 class="text-2xl font-bold mb-2">Membership</h1>
+      <p class="text-foam text-sm mb-6">Members get vouchers on active accounts, applied automatically every month.</p>
 
-    <?php elseif ($status === 'active'): ?>
-      <p class="text-green-600 font-semibold">✅ You are an active Bean There member!</p>
-
-    <?php elseif ($status === 'pending'): ?>
-      <p class="text-yellow-600 font-medium">Your membership request is pending approval.</p>
-
-    <?php elseif ($status === 'revoked'): ?>
-      <p class="text-red-600 font-medium mb-4">Your membership was revoked. You may reapply below.</p>
-      <form method="post">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Reapply for Membership</button>
-      </form>
-
-    <?php elseif ($status === 'rejected'): ?>
-      <p class="text-red-600 font-medium mb-4">Your membership application was rejected. You may reapply below.</p>
-      <form method="post">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Reapply for Membership</button>
-      </form>
-
-    <?php else: ?>
       <?php if (!empty($success)): ?>
-        <p class="text-green-600"><?= $success ?></p>
+        <p class="text-green-400 text-sm mb-4"><?= htmlspecialchars($success) ?></p>
       <?php elseif (!empty($error)): ?>
-        <p class="text-red-600"><?= $error ?></p>
-      <?php else: ?>
-        <p class="mb-4">You are not a member yet. Click below to apply for membership!</p>
+        <p class="text-red-400 text-sm mb-4"><?= htmlspecialchars($error) ?></p>
+      <?php endif; ?>
+
+      <?php if (!$verified): ?>
+        <p class="text-foam mb-4">You need a verified account to apply.</p>
+        <a href="user_verify.php" class="inline-block bg-caramel text-espresso font-semibold px-5 py-2.5 rounded-lg hover:bg-crema transition">Verify my account</a>
+
+      <?php elseif ($status === 'active'): ?>
+        <p class="text-green-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i> You're an active Bean There member.</p>
+        <a href="voucher.php" class="inline-block mt-4 text-caramel underline hover:text-crema">See my vouchers</a>
+
+      <?php elseif ($status === 'pending'): ?>
+        <p class="text-caramel font-medium"><i class="fa-solid fa-hourglass-half mr-1"></i> Your application is pending approval.</p>
+
+      <?php elseif ($status === 'revoked' || $status === 'rejected'): ?>
+        <p class="text-red-400 mb-4">Your membership was <?= htmlspecialchars($status) ?>. You can reapply below.</p>
         <form method="post">
-          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Apply for Membership</button>
+          <button type="submit" class="bg-caramel text-espresso font-semibold px-5 py-2.5 rounded-lg hover:bg-crema transition">Reapply for membership</button>
+        </form>
+
+      <?php elseif (empty($success)): ?>
+        <form method="post">
+          <button type="submit" class="bg-caramel text-espresso font-semibold px-5 py-2.5 rounded-lg hover:bg-crema transition">Apply for membership</button>
         </form>
       <?php endif; ?>
-    <?php endif; ?>
+    </div>
+  </main>
 
-    <a href="user_dashboard.php" class="mt-6 inline-block text-blue-600 hover:underline">← Back to Dashboard</a>
-  </div>
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>
 
 </html>

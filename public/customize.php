@@ -1,359 +1,163 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['current_user'])) {
-  die("Unauthorized. Please log in.");
-}
-
 require_once __DIR__ . '/../src/dbconn.php';
 
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  $itemID = $_POST['id'] ?? 0;
-
-  // Get item category from menu_items table using itemID
-  $category = null;
-  $categoryQuery = $conn->prepare("SELECT category FROM menu_items WHERE id = ?");
-  $categoryQuery->bind_param("i", $itemID);
-  $categoryQuery->execute();
-  $categoryQuery->bind_result($category);
-  $categoryQuery->fetch();
-  $categoryQuery->close();
-
-
-  $default_roast = "";
-  $default_caffeine = "";
-  $default_drinkType = "";
-  $default_sugarLevel = "";
-
-  if ($itemID > 0) {
-    if ($category === "menu") {
-      $stmt = $conn->prepare("SELECT name, drink_type, sugar_level, roast_level, caffeine_level, price FROM menu_items WHERE id = ?");
-      $stmt->bind_param("i", $itemID);
-      $stmt->execute();
-      $stmt->bind_result($name, $drinkType, $sugarLevel, $db_roast, $db_caffeine, $price);
-      if ($stmt->fetch()) {
-        $default_name = $name;
-        $default_drinkType = $drinkType;
-        $default_sugarLevel = $sugarLevel;
-        $default_roast = $db_roast;
-        $default_caffeine = $db_caffeine;
-        $default_price = $price;
-      }
-    } else if ($category === "product") {
-      $stmt = $conn->prepare("SELECT name, price FROM menu_items WHERE id = ?");
-      $stmt->bind_param("i", $itemID);
-      $stmt->execute();
-      $stmt->bind_result($name, $price);
-      if ($stmt->fetch()) {
-        $default_name = $name;
-        $default_price = $price;
-      }
-    }
-    $stmt->close();
-  }
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+  header("Location: user_dashboard.php");
+  exit;
 }
 
-$conn->close();
-?>
+$itemID = (int)($_POST['id'] ?? 0);
+$fromSection = ($_POST['from_section'] ?? '') === 'products' ? 'products' : 'menu';
 
+$item = null;
+if ($itemID > 0) {
+  $stmt = $conn->prepare("SELECT id, name, description, image_path, price, category, drink_type, sugar_level, roast_level, caffeine_level, stock
+                          FROM menu_items WHERE id = ?");
+  $stmt->bind_param("i", $itemID);
+  $stmt->execute();
+  $item = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+}
+$conn->close();
+
+if (!$item) {
+  header("Location: user_dashboard.php");
+  exit;
+}
+
+$isDrink = $item['category'] === 'menu';
+$pageTitle = 'Customise - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Checkout - Bean There</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #fdfaf6;
-      color: #4a4a4a;
-      margin: 0;
-      padding: 0;
-    }
-
-    .card {
-      background-color: #ffffff;
-      border-radius: 1rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.06);
-      padding: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    h2,
-    h3 {
-      color: #5e4b3c;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: #5e4b3c;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.25rem;
-      border: 1px solid #d4cfc9;
-      border-radius: 0.5rem;
-      background-color: #fdf9f3;
-      color: #4a4a4a;
-    }
-
-    input:focus,
-    select:focus {
-      border-color: #bfa88f;
-      outline: none;
-      background-color: #fdf4e3;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 0.5rem;
-    }
-
-    .price-summary {
-      font-size: 1.25rem;
-      font-weight: bold;
-    }
-
-    .btn-primary {
-      background-color: #8d6e63;
-      color: white;
-      padding: 0.8rem 1.2rem;
-      border-radius: 0.5rem;
-      font-weight: bold;
-      width: 100%;
-      transition: background-color 0.3s ease;
-      margin-top: 1rem;
-    }
-
-    .btn-primary:hover {
-      background-color: #6d4c41;
-    }
-
-    .inline-group label {
-      display: inline-block;
-      margin-right: 1rem;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body class="bg-yellow-50 p-6 font-sans">
-  <?php $fromSection = $_POST['from_section'] ?? 'menu'; ?>
-  <a href="user_dashboard.php#<?= $fromSection ?>" class="fixed top-5 left-5 z-50 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
-    ← Go Back
-  </a>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
+  <main class="grow max-w-2xl mx-auto w-full px-4 py-10">
+    <a href="user_dashboard.php#<?= $fromSection ?>" class="text-foam hover:text-caramel text-sm mb-6 inline-block">
+      <i class="fa-solid fa-arrow-left mr-1"></i> Back to menu
+    </a>
 
-  <form action="add_to_cart.php" method="post">
-    <div class="max-w-2xl mx-auto">
-      <div class="card">
-        <h2 class="text-2xl font-bold mb-6 text-center">Customize Your Drink</h2>
+    <?php if (!isset($_SESSION['current_user'])): ?>
+      <div class="bg-roast border border-caramel/40 rounded-xl px-4 py-3 mb-6 text-sm text-foam">
+        <i class="fa-solid fa-circle-info text-caramel mr-1"></i>
+        You can customise now — we'll ask you to log in when you add it to your cart.
+      </div>
+    <?php endif; ?>
 
-        <!-- Drink Info -->
-        <div class="mb-6">
-          <label>
-            <?php
-            if ($category === "menu") {
-              echo "Drink:";
-            } else if ($category === "product") {
-              echo "Product:";
-            }
-            ?>
-          </label>
-          <input type="text" name="name" value="<?= htmlspecialchars($default_name) ?>" readonly />
+    <div class="bg-roast border border-bean rounded-2xl overflow-hidden mb-6">
+      <div class="flex items-center gap-4 p-5">
+        <img src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['name']) ?>"
+          class="w-20 h-20 rounded-xl object-cover border border-bean">
+        <div>
+          <h1 class="text-xl font-bold"><?= htmlspecialchars($item['name']) ?></h1>
+          <p class="text-foam text-sm"><?= htmlspecialchars($item['description'] ?? '') ?></p>
         </div>
+      </div>
+    </div>
 
-        <?php if ($category === "menu"): ?>
-          <!-- Drink Type -->
-          <div class="mb-6">
-            <label>Drink Type:</label>
-            <select name="drinkType">
-              <option value="Iced" <?php if ($default_drinkType == "Iced") echo "selected"; ?>>Iced</option>
-              <option value="Hot" <?php if ($default_drinkType == "Hot") echo "selected"; ?>>Hot</option>
-            </select>
+    <form action="add_to_cart.php" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+      <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
-          </div>
-
-          <!-- Roast Level -->
-          <div class="mb-6">
-            <label>Roast Level:</label>
-            <select name="roastLevel">
-              <option value="" <?php if ($default_roast == "") echo "selected"; ?>>None</option>
-              <option value="light" <?php if ($default_roast == "light") echo "selected"; ?>>Light</option>
-              <option value="medium" <?php if ($default_roast == "medium") echo "selected"; ?>>Medium</option>
-              <option value="dark" <?php if ($default_roast == "dark") echo "selected"; ?>>Dark</option>
+      <?php if ($isDrink): ?>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="drinkType" class="block text-sm text-foam mb-1.5">Serve it</label>
+            <select name="drinkType" id="drinkType" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
+              <option value="Hot" <?= $item['drink_type'] === 'Hot' ? 'selected' : '' ?>>Hot</option>
+              <option value="Iced" <?= $item['drink_type'] === 'Iced' ? 'selected' : '' ?>>Iced</option>
             </select>
           </div>
-
-          <!-- Caffeine -->
-          <div class="mb-6">
-            <label>Caffeine Level:</label>
-            <select name="caffeineLevel">
-              <option value="" <?php if ($default_caffeine == "") echo "selected"; ?>>None</option>
-              <option value="low" <?php if ($default_caffeine == "low") echo "selected"; ?>>Low</option>
-              <option value="medium" <?php if ($default_caffeine == "medium") echo "selected"; ?>>Medium</option>
-              <option value="high" <?php if ($default_caffeine == "high") echo "selected"; ?>>High</option>
-            </select>
-          </div>
-
-          <!-- Milk Type -->
-          <div class="mb-6">
-            <label>Milk Type:</label>
-            <select name="milkType">
+          <div>
+            <label for="milkType" class="block text-sm text-foam mb-1.5">Milk</label>
+            <select name="milkType" id="milkType" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
               <option value="Dairy">Dairy</option>
               <option value="Oatside">Oatside (+RM1)</option>
               <option value="Almond">Almond (+RM1)</option>
               <option value="Soy">Soy (+RM1)</option>
             </select>
           </div>
-
-          <!-- Sugar Level -->
-          <div class="mb-6">
-            <label>Sugar Level:</label>
-            <select name="sugarLevel">
-              <option value="100%" <?php if ($default_sugarLevel == "100%") echo "selected"; ?>>100%</option>
-              <option value="75%" <?php if ($default_sugarLevel == "75%") echo "selected"; ?>>75%</option>
-              <option value="50%" <?php if ($default_sugarLevel == "50%") echo "selected"; ?>>50%</option>
-              <option value="25%" <?php if ($default_sugarLevel == "25%") echo "selected"; ?>>25%</option>
-              <option value="0%" <?php if ($default_sugarLevel == "0%") echo "selected"; ?>>0%</option>
+          <div>
+            <label for="roastLevel" class="block text-sm text-foam mb-1.5">Roast</label>
+            <select name="roastLevel" id="roastLevel" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
+              <option value="" <?= empty($item['roast_level']) ? 'selected' : '' ?>>No preference</option>
+              <option value="light" <?= $item['roast_level'] === 'light' ? 'selected' : '' ?>>Light</option>
+              <option value="medium" <?= $item['roast_level'] === 'medium' ? 'selected' : '' ?>>Medium</option>
+              <option value="dark" <?= $item['roast_level'] === 'dark' ? 'selected' : '' ?>>Dark</option>
             </select>
-
           </div>
-
-          <!-- Syrups -->
-          <div class="mb-6">
-            <h3 class="section-title text-lg font-semibold text-gray-800 mb-2">Syrups (RM0.50 each):</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2 bg-gray-50">
-                <span class="text-gray-700">Vanilla</span>
-                <input type="checkbox" name="syrups[]" class="syrup w-5 h-5 text-yellow-500" value="Vanilla" />
-              </label>
-              <label class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2 bg-gray-50">
-                <span class="text-gray-700">Caramel</span>
-                <input type="checkbox" name="syrups[]" class="syrup w-5 h-5 text-yellow-500" value="Caramel" />
-              </label>
-              <label class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2 bg-gray-50">
-                <span class="text-gray-700">Hazelnut</span>
-                <input type="checkbox" name="syrups[]" class="syrup w-5 h-5 text-yellow-500" value="Hazelnut" />
-              </label>
-            </div>
+          <div>
+            <label for="sugarLevel" class="block text-sm text-foam mb-1.5">Sugar</label>
+            <select name="sugarLevel" id="sugarLevel" class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel">
+              <?php foreach (['0%', '25%', '50%', '75%', '100%'] as $level): ?>
+                <option value="<?= $level ?>" <?= $item['sugar_level'] === $level ? 'selected' : '' ?>><?= $level ?></option>
+              <?php endforeach; ?>
+            </select>
           </div>
+        </div>
+        <input type="hidden" name="caffeineLevel" value="<?= htmlspecialchars($item['caffeine_level'] ?? '') ?>">
 
-          <!-- Toppings -->
-          <div class="mb-6">
-            <h3 class="section-title text-lg font-semibold text-gray-800 mb-2">Toppings (RM1.00 each):</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2 bg-gray-50">
-                <span class="text-gray-700">Whipped Cream</span>
-                <input type="checkbox" name="toppings[]" class="topping w-5 h-5 text-yellow-500" value="Whipped Cream" />
-              </label>
-              <label class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2 bg-gray-50">
-                <span class="text-gray-700">Espresso Jelly</span>
-                <input type="checkbox" name="toppings[]" class="topping w-5 h-5 text-yellow-500" value="Expresso Jelly" />
-              </label>
-            </div>
-          </div>
-        <?php endif; ?>
-
-        <!-- Total Price -->
-        <div class="mb-4 price-summary text-right">
-          Total: RM <span id="totalPrice"><?= htmlspecialchars($default_price) ?></span>
+        <p class="text-sm text-foam mb-2">Syrups <span class="text-xs">(RM0.50 each)</span></p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <?php foreach (['Vanilla', 'Caramel', 'Hazelnut'] as $syrup): ?>
+            <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+              <span><?= $syrup ?></span>
+              <input type="checkbox" name="syrups[]" value="<?= $syrup ?>" class="syrup accent-[#c49b63] w-4 h-4">
+            </label>
+          <?php endforeach; ?>
         </div>
 
-        <div class="form-group">
-          <input type="hidden" name="id" value="<?php echo $itemID ?>">
-          <button type="submit" class="btn-primary">Add To Cart</button>
+        <p class="text-sm text-foam mb-2">Toppings <span class="text-xs">(RM1.00 each)</span></p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+            <span>Whipped Cream</span>
+            <input type="checkbox" name="toppings[]" value="Whipped Cream" class="topping accent-[#c49b63] w-4 h-4">
+          </label>
+          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+            <span>Espresso Jelly</span>
+            <input type="checkbox" name="toppings[]" value="Expresso Jelly" class="topping accent-[#c49b63] w-4 h-4">
+          </label>
         </div>
+      <?php endif; ?>
+
+      <div class="flex items-center justify-between border-t border-bean pt-4">
+        <span class="text-foam">Total</span>
+        <span class="text-xl font-bold text-caramel">RM <span id="totalPrice"><?= number_format($item['price'], 2) ?></span></span>
       </div>
-    </div>
-  </form>
+
+      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-4">Add to cart</button>
+    </form>
+  </main>
+
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const basePrice = parseFloat(<?= json_encode($default_price) ?>);
+    document.addEventListener("DOMContentLoaded", function () {
+      const basePrice = <?= json_encode((float)$item['price']) ?>;
       const totalPriceElem = document.getElementById("totalPrice");
-      const deliveryRadios = document.querySelectorAll("input[name='deliveryOption']");
-      const form = document.querySelector("form");
-
-      const totalHiddenInput = document.createElement("input");
-      totalHiddenInput.type = "hidden";
-      totalHiddenInput.name = "total";
-      form.appendChild(totalHiddenInput);
-
-      // Optional elements – may not exist for "product" category
       const milkSelect = document.querySelector("select[name='milkType']");
-      const syrupCheckboxes = document.querySelectorAll("input[name='syrups[]']");
-      const toppingCheckboxes = document.querySelectorAll("input[name='toppings[]']");
+      const extras = document.querySelectorAll("input[name='syrups[]'], input[name='toppings[]']");
 
       function calculateTotal() {
         let total = basePrice;
-
-        // Add milk pricing if milk selection exists
-        if (milkSelect) {
-          const milk = milkSelect.value;
-          if (milk !== "Dairy") total += 1;
-        }
-
-        // Add syrup cost
-        if (syrupCheckboxes.length > 0) {
-          syrupCheckboxes.forEach(cb => {
-            if (cb.checked) total += 0.5;
-          });
-        }
-
-        // Add topping cost
-        if (toppingCheckboxes.length > 0) {
-          toppingCheckboxes.forEach(cb => {
-            if (cb.checked) total += 1;
-          });
-        }
-
-        // Delivery charge
-        /*let deliveryText = "Pickup";
-        deliveryRadios.forEach(rb => {
-          if (rb.checked) {
-            deliveryText = rb.value;
-            if (deliveryText === "Delivery") total += 3;
-          }
-        });*/
-
-        // Create/update delivery hidden input
-        /*let deliveryHidden = document.querySelector("input[name='delivery']");
-        if (!deliveryHidden) {
-          deliveryHidden = document.createElement("input");
-          deliveryHidden.type = "hidden";
-          deliveryHidden.name = "delivery";
-          form.appendChild(deliveryHidden);
-        }
-        deliveryHidden.value = deliveryText;*/
-
-        // Display total
+        if (milkSelect && milkSelect.value !== "Dairy") total += 1;
+        document.querySelectorAll("input[name='syrups[]']:checked").forEach(() => total += 0.5);
+        document.querySelectorAll("input[name='toppings[]']:checked").forEach(() => total += 1);
         totalPriceElem.textContent = total.toFixed(2);
-        totalHiddenInput.value = total.toFixed(2);
       }
 
-      // Attach event listeners if those sections exist
       if (milkSelect) milkSelect.addEventListener("change", calculateTotal);
-      syrupCheckboxes.forEach(cb => cb.addEventListener("change", calculateTotal));
-      toppingCheckboxes.forEach(cb => cb.addEventListener("change", calculateTotal));
-      deliveryRadios.forEach(rb => rb.addEventListener("change", calculateTotal));
-
-      // Initial calculation
+      extras.forEach(el => el.addEventListener("change", calculateTotal));
       calculateTotal();
     });
   </script>
-
-
-
 </body>
 
 </html>

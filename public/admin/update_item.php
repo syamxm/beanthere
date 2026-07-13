@@ -20,6 +20,7 @@ if (
 ) {
   $id = (int)$_POST['id'];
   $name = trim($_POST['name']);
+  $description = trim($_POST['description'] ?? '');
   $image_path = trim($_POST['image_path']);
   $price = floatval($_POST['price']);
   $old_price = ($_POST['old_price'] === '') ? null : floatval($_POST['old_price']);
@@ -52,9 +53,9 @@ if (
     //***** */
 
     // Update all fields for menu item
-    $sql = "UPDATE menu_items 
-            SET name = ?, image_path = ?, price = ?, old_price = ?, category = ?, 
-                roast_level = ?, caffeine_level = ?, flavour_profile = ?, 
+    $sql = "UPDATE menu_items
+            SET name = ?, description = ?, image_path = ?, price = ?, old_price = ?, category = ?,
+                roast_level = ?, caffeine_level = ?, flavour_profile = ?,
                 origin = ?, drink_type = ?, sugar_level = ?, bestMood = ?, bestWeather = ?, stock = ?
             WHERE id = ?";
     $stmt = mysqli_prepare($conn, $sql);
@@ -62,8 +63,9 @@ if (
     if ($stmt) {
       mysqli_stmt_bind_param(
         $stmt,
-        "ssddsssssssssii",
+        "sssddsssssssssii",
         $name,
+        $description,
         $image_path,
         $price,
         $old_price,
@@ -82,15 +84,15 @@ if (
     }
   } elseif ($category === 'product') {
     // Set menu-related fields to NULL
-    $sql = "UPDATE menu_items 
-            SET name = ?, image_path = ?, price = ?, old_price = ?, category = ?,
-                roast_level = NULL, caffeine_level = NULL, flavour_profile = NULL, 
+    $sql = "UPDATE menu_items
+            SET name = ?, description = ?, image_path = ?, price = ?, old_price = ?, category = ?,
+                roast_level = NULL, caffeine_level = NULL, flavour_profile = NULL,
                 origin = NULL, drink_type = NULL, sugar_level = NULL, stock = ?
             WHERE id = ?";
     $stmt = mysqli_prepare($conn, $sql);
 
     if ($stmt) {
-      mysqli_stmt_bind_param($stmt, "ssddsii", $name, $image_path, $price, $old_price, $category, $stock, $id);
+      mysqli_stmt_bind_param($stmt, "sssddsii", $name, $description, $image_path, $price, $old_price, $category, $stock, $id);
     }
   }
 

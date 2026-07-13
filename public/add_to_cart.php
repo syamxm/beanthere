@@ -2,7 +2,10 @@
 session_start();
 
 if (!isset($_SESSION['current_user'])) {
-  die("Unauthorized. Please log in.");
+  $_SESSION['message'] = "Log in to add items to your cart.";
+  $_SESSION['success'] = false;
+  header("Location: user_login.php?return=user_dashboard.php");
+  exit;
 }
 
 require_once __DIR__ . '/../src/dbconn.php';

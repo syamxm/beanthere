@@ -2,7 +2,8 @@
 session_start();
 
 if (!isset($_SESSION['current_user'])) {
-  die("Unauthorized. Please log in.");
+  header("Location: user_login.php?return=cart.php");
+  exit;
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
@@ -18,10 +19,10 @@ $stmt->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   $paymentMethod = $_POST['paymentMethod'];
   $selectedIDs = $_POST['selected_ids'] ?? [];
-  //$finalTotal = isset($_POST['final_total']) ? floatval($_POST['final_total']) : 0.00;
 
   if (empty($selectedIDs)) {
-    die("No items selected.");
+    header("Location: cart.php");
+    exit;
   }
 
   // Validate selected IDs
@@ -123,127 +124,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   </script>";
   exit();
 }
-?>
 
+$pageTitle = 'Payment - Bean There';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Choose Payment - Bean There</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #fdfaf6;
-      color: #333;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    .section-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      text-align: center;
-      color: #8d6e63;
-      margin-bottom: 2rem;
-    }
-
-    .payment-option {
-      display: flex;
-      align-items: center;
-      padding: 1rem;
-      border-radius: 0.75rem;
-      border: 2px solid #e0e0e0;
-      margin-bottom: 1rem;
-      cursor: pointer;
-      background-color: #f9f6f2;
-      transition: all 0.3s ease-in-out;
-    }
-
-    .payment-option:hover {
-      border-color: #c49b63;
-      background-color: #fffaf3;
-    }
-
-    .payment-option input {
-      margin-right: 1rem;
-      accent-color: #c49b63;
-    }
-
-    .sub-fields {
-      margin-left: 2rem;
-      margin-top: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .sub-fields input,
-    .sub-fields select {
-      width: 100%;
-      padding: 0.6rem 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      font-size: 0.95rem;
-      margin-bottom: 0.5rem;
-      background-color: #fefefe;
-    }
-
-    .btn-submit {
-      background-color: #c49b63;
-      color: white;
-      padding: 0.9rem 1.5rem;
-      border: none;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      width: 100%;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn-submit:hover {
-      background-color: #aa8152;
-    }
-
-    .back-link {
-      position: absolute;
-      top: 1.2rem;
-      left: 1.2rem;
-      background-color: white;
-      border: 1px solid #ccc;
-      color: #333;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.2s ease-in-out;
-    }
-
-    .back-link:hover {
-      background-color: #f0f0f0;
-      border-color: #aaa;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
+  <?php include __DIR__ . '/../src/partials/head.php'; ?>
 </head>
 
-<body>
-  <a href="cart.php" class="back-link">← Back to Cart</a>
-  <div class="container">
-    <h2 class="section-title">Choose Payment Method</h2>
+<body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
+  <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-    <form id="paymentForm" method="post">
+  <main class="grow max-w-xl mx-auto w-full px-4 py-10">
+    <a href="cart.php" class="text-foam hover:text-caramel text-sm mb-6 inline-block">
+      <i class="fa-solid fa-arrow-left mr-1"></i> Back to cart
+    </a>
+    <h1 class="text-2xl font-bold mb-6">Choose payment method</h1>
+
+    <form id="paymentForm" method="post" class="bg-roast border border-bean rounded-2xl p-6">
       <?php
       if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids'])) {
         foreach ($_POST['selected_ids'] as $id) {
@@ -258,31 +158,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
       }
       ?>
 
-      <label class="payment-option">
-        <input type="radio" name="paymentMethod" value="Card" required />
-        <span>Credit / Debit Card</span>
+      <label class="payment-option flex items-center gap-3 border border-bean rounded-xl px-4 py-3.5 mb-2 cursor-pointer hover:border-caramel bg-espresso">
+        <input type="radio" name="paymentMethod" value="Card" required class="accent-[#c49b63]">
+        <span><i class="fa-regular fa-credit-card text-caramel mr-2"></i>Credit / debit card</span>
       </label>
-      <div id="cardFields" class="sub-fields hidden">
-        <input type="text" id="cardNumber" placeholder="Card Number" />
-        <input type="text" id="cvv" placeholder="CVV" />
-        <input type="month" id="expiryDate" />
+      <div id="cardFields" class="hidden ml-2 mb-4 flex flex-col gap-2">
+        <input type="text" id="cardNumber" placeholder="Card number" inputmode="numeric"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema focus:outline-none focus:border-caramel">
+        <input type="text" id="cvv" placeholder="CVV" inputmode="numeric"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema focus:outline-none focus:border-caramel">
+        <input type="month" id="expiryDate"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema focus:outline-none focus:border-caramel">
       </div>
 
-      <label class="payment-option">
-        <input type="radio" name="paymentMethod" value="E-Wallet" />
-        <span>E-Wallet (Touch 'n Go, Boost, etc.)</span>
+      <label class="payment-option flex items-center gap-3 border border-bean rounded-xl px-4 py-3.5 mb-2 cursor-pointer hover:border-caramel bg-espresso">
+        <input type="radio" name="paymentMethod" value="E-Wallet" class="accent-[#c49b63]">
+        <span><i class="fa-solid fa-wallet text-caramel mr-2"></i>E-Wallet (Touch 'n Go, Boost, etc.)</span>
       </label>
-      <div id="walletFields" class="sub-fields hidden">
-        <input type="text" id="walletPhone" placeholder="Phone Number" />
+      <div id="walletFields" class="hidden ml-2 mb-4">
+        <input type="text" id="walletPhone" placeholder="Phone number" inputmode="tel"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema focus:outline-none focus:border-caramel">
       </div>
 
-      <label class="payment-option">
-        <input type="radio" name="paymentMethod" value="Online Banking" />
-        <span>Online Banking</span>
+      <label class="payment-option flex items-center gap-3 border border-bean rounded-xl px-4 py-3.5 mb-2 cursor-pointer hover:border-caramel bg-espresso">
+        <input type="radio" name="paymentMethod" value="Online Banking" class="accent-[#c49b63]">
+        <span><i class="fa-solid fa-building-columns text-caramel mr-2"></i>Online banking</span>
       </label>
-      <div id="bankFields" class="sub-fields hidden">
-        <select id="bankSelect">
-          <option value="">Select Your Bank</option>
+      <div id="bankFields" class="hidden ml-2 mb-4">
+        <select id="bankSelect"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema focus:outline-none focus:border-caramel">
+          <option value="">Select your bank</option>
           <option>Maybank</option>
           <option>CIMB</option>
           <option>RHB</option>
@@ -297,9 +202,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
         </select>
       </div>
 
-      <button type="submit" class="btn-submit">Confirm Payment</button>
+      <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-2">Confirm payment</button>
     </form>
-  </div>
+  </main>
+
+  <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 
   <script>
     const paymentRadios = document.querySelectorAll("input[name='paymentMethod']");
@@ -322,8 +229,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
       return new Date(year, month) < now;
     }
 
-    document.getElementById("paymentForm").addEventListener("submit", function(e) {
-      e.preventDefault(); // Always prevent default at first
+    document.getElementById("paymentForm").addEventListener("submit", function (e) {
+      e.preventDefault();
 
       const selected = document.querySelector("input[name='paymentMethod']:checked");
       if (!selected) {
@@ -331,7 +238,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
         return;
       }
 
-      // Card validation
       if (selected.value === "Card") {
         const cardNum = document.getElementById("cardNumber").value.trim();
         const cvv = document.getElementById("cvv").value.trim();
@@ -344,28 +250,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
           alert("Card is expired. Please use a valid card.");
           return;
         }
-
-        // Submit immediately for Card
         e.target.submit();
         return;
       }
 
-      // E-Wallet validation
       if (selected.value === "E-Wallet") {
         const phone = document.getElementById("walletPhone").value.trim();
         if (!phone) {
           alert("Please enter your phone number.");
           return;
         }
-        // Fake redirect message
         alert("Redirecting to E-Wallet...");
-        setTimeout(() => {
-          e.target.submit(); // Submit form after 3 sec
-        }, 3000);
+        setTimeout(() => e.target.submit(), 3000);
         return;
       }
 
-      // Online Banking validation
       if (selected.value === "Online Banking") {
         const bank = document.getElementById("bankSelect").value;
         if (!bank) {
@@ -373,14 +272,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
           return;
         }
         alert("Redirecting to " + bank + " online banking portal...");
-        setTimeout(() => {
-          e.target.submit(); // Submit after 3 sec
-        }, 3000);
-        return;
+        setTimeout(() => e.target.submit(), 3000);
       }
     });
   </script>
-
 </body>
 
 </html>
