@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   header("Location: user_dashboard.php");
@@ -64,6 +65,7 @@ $pageTitle = 'Customise - Bean There';
     </div>
 
     <form action="add_to_cart.php" method="post" class="bg-roast border border-bean rounded-2xl p-6">
+      <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
       <?php if ($isDrink): ?>

@@ -7,6 +7,7 @@ if (!isset($_SESSION["current_user"])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $current_username = $_SESSION["current_user"];
 
@@ -14,7 +15,7 @@ $flash_success = $_SESSION['flash_success'] ?? "";
 $flash_errors = $_SESSION['flash_errors'] ?? [];
 unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
 
-$sql = "SELECT userID, username, phone_number, email FROM users WHERE username = ?";
+$sql = "SELECT userID, username, password, phone_number, email FROM users WHERE username = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $current_username);
 $stmt->execute();
@@ -28,6 +29,8 @@ if ($result->num_rows !== 1) {
 $user = $result->fetch_assoc();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  csrf_verify();
+
   $errors = [];
 
   $username = trim($_POST['username']);
@@ -35,13 +38,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $email = trim($_POST['email']);
   $password = $_POST['password'];
   $confirm_password = $_POST['confirm_password'];
+  $current_password = $_POST['current_password'] ?? '';
 
   if (empty($username)) {
     $errors[] = "Username cannot be empty.";
   }
 
   if (!empty($password)) {
-    if ($password !== $confirm_password) {
+    if (empty($current_password) || !password_verify($current_password, $user['password'])) {
+      $errors[] = "Current password is incorrect.";
+    } elseif ($password !== $confirm_password) {
       $errors[] = "Passwords do not match.";
     } elseif (strlen($password) < 6) {
       $errors[] = "Password must be at least 6 characters.";
@@ -134,6 +140,7 @@ $pageTitle = 'My profile - Bean There';
       <?php endif; ?>
 
       <form method="POST" action="edit_user_detail.php" class="bg-roast border border-bean rounded-2xl p-6">
+        <?= csrf_field() ?>
         <label for="username" class="block text-sm text-foam mb-1.5">Username</label>
         <input type="text" id="username" name="username" required value="<?= htmlspecialchars($user['username']) ?>"
           class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
@@ -152,6 +159,10 @@ $pageTitle = 'My profile - Bean There';
 
         <label for="confirm_password" class="block text-sm text-foam mb-1.5">Confirm new password</label>
         <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password"
+          class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-4 text-crema focus:outline-none focus:border-caramel">
+
+        <label for="current_password" class="block text-sm text-foam mb-1.5">Current password <span class="text-xs">(required to change password)</span></label>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password"
           class="w-full bg-espresso border border-bean rounded-lg px-3.5 py-2.5 mb-6 text-crema focus:outline-none focus:border-caramel">
 
         <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Save changes</button>
