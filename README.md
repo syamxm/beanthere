@@ -20,19 +20,123 @@ db/                schema + seed, auto-imported on first DB boot
 logs/              cron logs (gitignored, outside docroot)
 ```
 
-## Run
+## Local Development
 
-```bash
-cp .env.example .env     # then edit the passwords
-docker compose up -d --build
-```
+Everything runs in Docker with one command, on Windows, Linux, or macOS. You do
+not need PHP or MariaDB installed locally — only Docker and Git.
 
-Serves on `127.0.0.1:8081`. The database imports `db/*.sql` on first boot only;
-to reimport, drop the volume with `docker compose down -v`.
+Local runs never touch production. `beanthere.syamxm.com` is this same
+homeserver, but a local run is a completely separate set of containers, its
+own database, and its own `.env` — nothing you do locally reaches the live
+site.
 
-Seeded accounts (`admin`, `testuser`) have no working password by default —
-set one manually after first boot; see the comment block at the bottom of
-`db/coffeebuddydb.sql`.
+### Prerequisites
+
+**Linux**
+
+- [Docker Engine](https://docs.docker.com/engine/install/) with the Docker
+  Compose plugin (included in modern installs — check with `docker compose version`)
+- Git
+
+**Windows**
+
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
+  — requires WSL 2 (the installer sets it up; if prompted, run `wsl --install`
+  in PowerShell as Administrator and reboot first)
+- [Git for Windows](https://git-scm.com/downloads/win)
+- Make sure Docker Desktop is **running** (whale icon in the system tray)
+  before using any `docker` command
+
+### Setup (all operating systems)
+
+Run these in a terminal (Linux: any shell; Windows: PowerShell or Git Bash).
+
+1. Clone and enter the project:
+
+   ```bash
+   git clone https://github.com/syamxm/BeanThere.git
+   cd BeanThere
+   ```
+
+2. Create the local Docker network (one time only). Production uses this
+   network for its reverse proxy; `docker-compose.yml` declares it as
+   `external`, so `docker compose up` fails with `network proxy-net declared
+   as external, but could not be found` until it exists — even locally, where
+   nothing actually routes through it:
+
+   ```bash
+   docker network create proxy-net
+   ```
+
+   If it already exists (e.g. you're setting up other `syamxm` projects on the
+   same machine) this errors with `network with name proxy-net already
+   exists` — that's fine, skip the step.
+
+3. Create your local config:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   On Windows PowerShell use `copy` instead of `cp`:
+
+   ```powershell
+   copy .env.example .env
+   ```
+
+   Then open `.env` and set real values for `DB_PASS` and `DB_ROOT_PASS` (any
+   values work locally — they just need to exist). Leave `OLLAMA_URL` as-is or
+   blank; see [Recommendation chatbot](#recommendation-chatbot) — the chatbot
+   works locally either way, it just always uses the rule-based fallback
+   unless you also stand up Ollama on your machine. Never commit `.env` — it
+   is git-ignored.
+
+4. Build and start everything:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+   The first build takes a minute or two. Later runs are much faster.
+
+### Verify it works
+
+Open **http://127.0.0.1:8081** in your browser. You should see the BeanThere
+landing page. Go to `user_register.php`, create an account, log in, add a
+drink to your cart, and check out (see [Demo limitations](#demo-limitations) —
+checkout doesn't charge anything real). If that works, the app and database
+are running correctly.
+
+The database imports `db/coffeebuddydb.sql` on first boot only — seeded
+accounts (`admin`, `testuser`) have no working password by default; set one
+manually after first boot, see the comment block at the bottom of that file.
+
+### Day-to-day commands
+
+| Action | Command |
+|--------|---------|
+| Start (after first setup) | `docker compose up -d` |
+| View logs | `docker compose logs -f app` |
+| Rebuild after code changes | `docker compose up -d --build` |
+| Stop | `docker compose down` |
+| **Reset the local database** (wipes all local users/orders) | `docker compose down -v` |
+
+### Windows gotchas
+
+- **Docker Desktop must be running** before any `docker` command — otherwise
+  you get `error during connect` / `cannot connect to the Docker daemon`.
+- **WSL 2 is required.** If Docker Desktop complains about WSL, run
+  `wsl --install` in an Administrator PowerShell and reboot.
+- **Paths:** use backslashes in PowerShell (`db\coffeebuddydb.sql`) and
+  forward slashes in Git Bash (`db/coffeebuddydb.sql`).
+
+### Production (for reference — do not run locally)
+
+In production the app container also joins the external `proxy-net` network
+and is routed by the central Nginx proxy (`~/nginx`) as
+`beanthere.syamxm.com`, exposed through Cloudflare Tunnel — see
+[Public access](#public-access). The `127.0.0.1:8081` port binding is for
+direct/local access only and is never exposed publicly.
 
 ## Public access
 
