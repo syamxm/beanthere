@@ -66,7 +66,7 @@ $pageTitle = 'Recommendation - Bean There';
   </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
-  <script src="assets/chat.js"></script>
+  <script src="assets/chat.js?v=<?= filemtime(__DIR__ . '/assets/chat.js') ?>"></script>
 </body>
 
 </html>
