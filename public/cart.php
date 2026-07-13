@@ -7,6 +7,7 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
@@ -18,6 +19,8 @@ $stmt->close();
 
 // Handle quantity update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['cart_id'])) {
+  csrf_verify();
+
   $cart_id = intval($_POST['cart_id']);
   if ($_POST['action'] === 'increase') {
     $stmt = $conn->prepare("UPDATE cart c JOIN menu_items m ON c.itemID = m.id
@@ -129,17 +132,20 @@ $pageTitle = 'Cart - Bean There';
               </span>
               <div class="flex items-center gap-2">
                 <form method="POST" class="inline">
+                  <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="decrease">
                   <button type="submit" class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold">−</button>
                 </form>
                 <span class="w-6 text-center"><?= (int)$item['qty'] ?></span>
                 <form method="POST" class="inline">
+                  <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="increase">
                   <button type="submit" <?= $item['qty'] >= $item['stock'] ? 'disabled class="w-8 h-8 rounded-lg bg-bean text-foam opacity-50 cursor-not-allowed font-bold"' : 'class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold"' ?>>+</button>
                 </form>
                 <form method="POST" class="inline ml-1">
+                  <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="remove">
                   <button type="submit" onclick="return confirm('Remove this item from your cart?')"
@@ -175,7 +181,9 @@ $pageTitle = 'Cart - Bean There';
 
           <div id="summary" class="text-crema font-semibold border-t border-bean pt-4 mb-4 text-sm">Subtotal: RM 0.00</div>
 
-          <form id="checkoutForm" method="POST" action="paymentMethod.php"></form>
+          <form id="checkoutForm" method="POST" action="paymentMethod.php">
+            <?= csrf_field() ?>
+          </form>
           <button id="checkoutBtn" onclick="checkout()"
             class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition disabled:bg-bean disabled:text-foam disabled:cursor-not-allowed" disabled>
             Checkout selected
@@ -241,7 +249,14 @@ $pageTitle = 'Cart - Bean There';
       btn.textContent = "Redirecting...";
 
       const form = document.getElementById("checkoutForm");
+      const csrfToken = form.querySelector('input[name="csrf_token"]').value;
       form.innerHTML = '';
+
+      const csrfInput = document.createElement("input");
+      csrfInput.type = "hidden";
+      csrfInput.name = "csrf_token";
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
 
       document.querySelectorAll(".cart-item").forEach((item, i) => {
         const checkbox = document.getElementById(`check-${i}`);
