@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/dbconn.php';
 
-$sqlAllItem = "SELECT id, name, description, image_path, price, category FROM menu_items";
+$sqlAllItem = "SELECT id, name, description, image_path, price, category FROM menu_items ORDER BY sort_order, name";
 $resultAllItem = mysqli_query($conn, $sqlAllItem);
 
 $items = [];

@@ -9,14 +9,14 @@ unset($_SESSION['message'], $_SESSION['success']);
 
 $drinks = [];
 $result = $conn->query("SELECT id, name, description, image_path, price, old_price, stock, roast_level, caffeine_level, drink_type
-                        FROM menu_items WHERE category = 'menu' ORDER BY price ASC");
+                        FROM menu_items WHERE category = 'menu' ORDER BY sort_order, name");
 while ($row = $result->fetch_assoc()) {
   $drinks[] = $row;
 }
 
 $beans = [];
 $result = $conn->query("SELECT id, name, description, image_path, price, stock
-                        FROM menu_items WHERE category = 'product' ORDER BY price ASC");
+                        FROM menu_items WHERE category = 'product' ORDER BY sort_order, name");
 while ($row = $result->fetch_assoc()) {
   $beans[] = $row;
 }
