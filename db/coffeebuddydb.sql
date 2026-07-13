@@ -125,7 +125,8 @@ CREATE TABLE `menu_items` (
   `sugar_level` varchar(50) DEFAULT NULL,
   `bestMood` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `bestWeather` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `stock` int(11) NOT NULL DEFAULT 0
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `sort_order` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -148,6 +149,28 @@ INSERT INTO `menu_items` (`id`, `name`, `description`, `image_path`, `price`, `o
 (25, 'Caramel Frappe', 'Blended ice, milk and caramel topped with cream. Basically a treat.', 'assets/images/caramel-frappe.jpg', 14.00, 16.00, 'menu', 'light', 'low', '[\"Caramel\",\"Milky\",\"Chilled\"]', 'Colombia', 'Iced', '100%', '[\"happy\",\"playful\"]', '[\"hot\",\"sunny\"]', 30),
 (26, 'Mocha', 'Espresso and dark chocolate under steamed milk. Rich but balanced.', 'assets/images/mocha.jpg', 12.50, NULL, 'menu', 'medium', 'high', '[\"Chocolatey\",\"Rich\",\"Smooth\"]', 'Brazil', 'Hot', '50%', '[\"calm\",\"comforted\"]', '[\"cold\",\"rainy\"]', 35),
 (27, 'Classic Iced Coffee', 'Chilled house blend with milk and a touch of palm sugar.', 'assets/images/iced-coffee.jpg', 8.50, NULL, 'menu', 'medium', 'medium', '[\"Refreshing\",\"Lightly Sweet\",\"Smooth\"]', 'Brazil', 'Iced', '50%', '[\"easygoing\",\"social\"]', '[\"hot\",\"sunny\"]', 45);
+
+UPDATE `menu_items` SET `sort_order` = `id`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `settings`
+--
+
+CREATE TABLE `settings` (
+  `name` varchar(50) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`name`, `value`) VALUES
+('store_open', '1'),
+('closed_message', 'We are closed at the moment — see you soon for your next cup!');
 
 -- --------------------------------------------------------
 
