@@ -1,0 +1,42 @@
+services:
+  app:
+    build: .
+    container_name: beanthere-app
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+    volumes:
+      - ./logs:/var/www/html/logs
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      - db
+    networks:
+      - internal
+      - proxy-net
+
+  db:
+    image: mariadb:10.4
+    container_name: beanthere-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d:ro
+    networks:
+      - internal
+
+volumes:
+  dbdata:
+
+networks:
+  internal:
+  proxy-net:
+    external: true
