@@ -38,9 +38,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (password_verify($password, $storedPassword)) {
           $valid = true;
           $needsRehash = password_needs_rehash($storedPassword, PASSWORD_DEFAULT);
-        } elseif (hash_equals($storedPassword, $password)) {
-          $valid = true;
-          $needsRehash = true;
         }
       }
 
