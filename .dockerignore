@@ -1,0 +1,8 @@
+.git
+.github
+logs
+*.md
+*.zip
+*.mp4
+beantheredb-fullData-backup.sql
+SQL
