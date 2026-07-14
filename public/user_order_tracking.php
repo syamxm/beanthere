@@ -26,7 +26,6 @@ while ($row = $result->fetch_assoc()) {
   $orders[] = $row;
 }
 $stmt->close();
-$conn->close();
 
 $pageTitle = 'Your orders - Bean There';
 ?>

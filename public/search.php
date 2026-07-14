@@ -1,8 +1,9 @@
 <?php
 session_start();
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/csrf.php';
 
-$sqlAllItem = "SELECT id, name, description, image_path, price, category FROM menu_items ORDER BY sort_order, name";
+$sqlAllItem = "SELECT id, name, description, image_path, price, category, stock FROM menu_items ORDER BY sort_order, name";
 $resultAllItem = mysqli_query($conn, $sqlAllItem);
 
 $items = [];
@@ -14,6 +15,7 @@ while ($row = mysqli_fetch_assoc($resultAllItem)) {
     'image' => $row['image_path'],
     'price' => $row['price'],
     'category' => $row['category'],
+    'stock' => (int)$row['stock'],
   ];
 }
 
@@ -44,6 +46,7 @@ $pageTitle = 'Search - Bean There';
 
   <script>
     const allItems = <?php echo json_encode($items); ?>;
+    const csrfToken = <?php echo json_encode(csrf_token()); ?>;
     const input = document.getElementById('searchInput');
     const results = document.getElementById('results');
     const noResults = document.getElementById('noResults');
@@ -60,8 +63,12 @@ $pageTitle = 'Search - Bean There';
         const fromSection = item.category === "menu" ? "menu" : "products";
         const action = item.category === "menu" ? "customize.php" : "add_to_cart.php";
         const label = item.category === "menu" ? "Customise &amp; order" : "Add to cart";
+        const button = item.stock > 0
+          ? `<button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2 rounded-lg hover:bg-crema transition">${label}</button>`
+          : `<button type="button" disabled class="w-full bg-bean text-foam font-semibold py-2 rounded-lg cursor-not-allowed">Out of stock</button>`;
         return `
       <form action="${action}" method="post">
+        <input type="hidden" name="csrf_token" value="${escapeHtml(csrfToken)}">
         <input type="hidden" name="id" value="${item.id}">
         <input type="hidden" name="from_section" value="${fromSection}">
         <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
@@ -72,7 +79,7 @@ $pageTitle = 'Search - Bean There';
               <span class="text-caramel font-semibold whitespace-nowrap">RM${parseFloat(item.price).toFixed(2)}</span>
             </div>
             <p class="text-foam text-sm mb-4 grow">${escapeHtml(item.description)}</p>
-            <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2 rounded-lg hover:bg-crema transition">${label}</button>
+            ${button}
           </div>
         </div>
       </form>`;

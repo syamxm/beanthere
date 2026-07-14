@@ -34,15 +34,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $verified) {
   csrf_verify();
 
   if ($status === null) {
-    $stmt = $conn->prepare("INSERT INTO membership (userID) VALUES (?)");
-    $stmt->bind_param("i", $userID);
-    if ($stmt->execute()) {
+    // UNIQUE(userID) is the real guard against a double-submitted application;
+    // the status check above can be passed twice by two fast clicks.
+    try {
+      $stmt = $conn->prepare("INSERT INTO membership (userID) VALUES (?)");
+      $stmt->bind_param("i", $userID);
+      $stmt->execute();
+      $stmt->close();
+
       $success = "Membership application submitted! Please wait for admin approval.";
       $status = "pending";
-    } else {
-      $error = "Failed to apply for membership. Please try again.";
+    } catch (mysqli_sql_exception $e) {
+      if ($e->getCode() == 1062) {
+        $error = "You have already applied or are a member.";
+        $status = "pending";
+      } else {
+        $error = "Failed to apply for membership. Please try again.";
+      }
     }
-    $stmt->close();
   } elseif ($status === "rejected" || $status === "revoked") {
     $status = "pending";
     $update = $conn->prepare("UPDATE membership SET status = ? WHERE userID = ?");

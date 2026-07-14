@@ -8,6 +8,7 @@ if (!isset($_SESSION['current_user'])) {
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/pricing.php';
 
 $flashMessage = $_SESSION['message'] ?? '';
 unset($_SESSION['message'], $_SESSION['success']);
@@ -25,26 +26,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['car
   csrf_verify();
 
   $cart_id = intval($_POST['cart_id']);
-  if ($_POST['action'] === 'increase') {
-    $stmt = $conn->prepare("UPDATE cart c JOIN menu_items m ON c.itemID = m.id
-                            SET c.total = c.total / c.qty * (c.qty + 1), c.qty = c.qty + 1
-                            WHERE c.cartID = ? AND c.userID = ? AND c.qty < m.stock");
-    $stmt->bind_param("ii", $cart_id, $userID);
-    $stmt->execute();
-    $stmt->close();
-  } elseif ($_POST['action'] === 'decrease') {
-    $stmt = $conn->prepare("UPDATE cart
-                            SET total = total / qty * GREATEST(qty - 1, 1), qty = GREATEST(qty - 1, 1)
-                            WHERE cartID = ? AND userID = ?");
-    $stmt->bind_param("ii", $cart_id, $userID);
-    $stmt->execute();
-    $stmt->close();
-  } elseif ($_POST['action'] === 'remove') {
+
+  if ($_POST['action'] === 'remove') {
     $stmt = $conn->prepare("DELETE FROM cart WHERE cartID = ? AND userID = ?");
     $stmt->bind_param("ii", $cart_id, $userID);
     $stmt->execute();
     $stmt->close();
+  } elseif (in_array($_POST['action'], ['increase', 'decrease'], true)) {
+    $stmt = $conn->prepare("SELECT c.qty, c.milkType, c.syrups, c.toppings, m.price, m.stock
+                            FROM cart c JOIN menu_items m ON c.itemID = m.id
+                            WHERE c.cartID = ? AND c.userID = ?");
+    $stmt->bind_param("ii", $cart_id, $userID);
+    $stmt->execute();
+    $stmt->bind_result($qty, $milkType, $syrups, $toppings, $price, $stock);
+    $found = $stmt->fetch();
+    $stmt->close();
+
+    if ($found) {
+      $newQty = $_POST['action'] === 'increase' ? $qty + 1 : max(1, $qty - 1);
+
+      if ($newQty > $stock) {
+        $_SESSION['message'] = "Only $stock left of that one.";
+        $_SESSION['success'] = false;
+      } else {
+        // Recomputed from the menu price every time, so repeated +/- cannot drift.
+        $unitPrice = drink_unit_price((float)$price, $milkType, $syrups, $toppings);
+        $newTotal = cart_line_total($unitPrice, $newQty);
+
+        $update = $conn->prepare("UPDATE cart SET qty = ?, total = ? WHERE cartID = ? AND userID = ?");
+        $update->bind_param("idii", $newQty, $newTotal, $cart_id, $userID);
+        $update->execute();
+        $update->close();
+      }
+    }
   }
+
+  header("Location: cart.php");
+  exit;
 }
 
 $items = [];
@@ -85,7 +103,6 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $stmt->close();
-$conn->close();
 
 $pageTitle = 'Cart - Bean There';
 ?>

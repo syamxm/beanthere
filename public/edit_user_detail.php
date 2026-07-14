@@ -154,7 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   exit;
 }
 
-$conn->close();
 
 $tier = get_tier((int)$user['lifetime_points']);
 

@@ -106,7 +106,6 @@ $stmt = $conn->prepare("SELECT r.id, r.name, r.points_cost, v.discount_value
 $stmt->execute();
 $rewards = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-$conn->close();
 
 if ($tier['next'] !== null) {
   $span = $tier['next']['min'] - $tier['min'];
