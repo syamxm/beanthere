@@ -59,7 +59,7 @@ $pageTitle = 'Reports - Bean There Admin';
 
 <head>
   <?php include __DIR__ . '/../../src/partials/admin_head.php'; ?>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="<?= htmlspecialchars($assetPrefix) ?>/vendor/chart.umd.min.js"></script>
 </head>
 
 <body class="bg-espresso text-crema font-sans min-h-screen">

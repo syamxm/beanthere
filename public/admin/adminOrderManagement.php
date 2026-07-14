@@ -9,11 +9,20 @@ if (!isset($_SESSION['current_admin'])) {
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
 
+const PICKUP_STATUSES = ['Order Received', 'Preparing', 'Ready for Pickup', 'Done Pickup'];
+const DELIVERY_STATUSES = ['Order Received', 'Preparing', 'Out for Delivery', 'Delivered'];
+
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['orderID'], $_POST['newStatus'])) {
   csrf_verify();
   $orderID = intval($_POST['orderID']);
   $newStatus = $_POST['newStatus'];
+
+  if (!in_array($newStatus, array_merge(PICKUP_STATUSES, DELIVERY_STATUSES), true)) {
+    $_SESSION['status_updated'] = "Unknown order status — nothing was changed.";
+    header("Location: adminOrderManagement.php");
+    exit();
+  }
 
   $stmt = $conn->prepare("UPDATE orders SET orderStatus = ?, lastStatusUpdate = NOW() WHERE orderID = ?");
   $stmt->bind_param("si", $newStatus, $orderID);
@@ -94,9 +103,7 @@ $pageTitle = 'Orders - Bean There Admin';
                       <select name="newStatus" class="bg-espresso border border-bean rounded-lg px-2 py-1.5 text-crema text-sm focus:outline-none focus:border-caramel">
                         <?php
                         $isPickup = strtolower($order['delivery']) === 'pickup';
-                        $pickupStatuses = ['Order Received', 'Preparing', 'Ready for Pickup', 'Done Pickup'];
-                        $deliveryStatuses = ['Order Received', 'Preparing', 'Out for Delivery', 'Delivered'];
-                        $availableStatuses = $isPickup ? $pickupStatuses : $deliveryStatuses;
+                        $availableStatuses = $isPickup ? PICKUP_STATUSES : DELIVERY_STATUSES;
 
                         foreach ($availableStatuses as $status) {
                           $selected = ($order['orderStatus'] === $status) ? 'selected' : '';

@@ -8,6 +8,7 @@ if (!isset($_SESSION['current_admin'])) {
 
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
+require_once __DIR__ . '/../../src/voucher_status.php';
 
 $flash_success = $_SESSION['flash_success'] ?? '';
 $flash_error = $_SESSION['flash_error'] ?? '';
@@ -21,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $discount = max(0, min(100, floatval($_POST['discount_value'])));
   $valid_from = $_POST['valid_from'];
   $valid_until = $_POST['valid_until'];
-  $status = $_POST['status'];
+  $status = valid_voucher_status($_POST['status'] ?? null) ? $_POST['status'] : 'active';
 
   $stmt = $conn->prepare("SELECT id FROM admins WHERE username = ?");
   $stmt->bind_param("s", $_SESSION['current_admin']);
@@ -88,8 +89,9 @@ $pageTitle = 'Add voucher - Bean There Admin';
 
       <label for="status">Status</label>
       <select name="status" id="status" required>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
+        <?php foreach (VOUCHER_STATUSES as $option): ?>
+          <option value="<?= $option ?>"><?= ucfirst($option) ?></option>
+        <?php endforeach; ?>
       </select>
 
       <button type="submit" class="btn-caramel w-full mt-5">Save voucher</button>

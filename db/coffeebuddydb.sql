@@ -239,20 +239,21 @@ CREATE TABLE `vouchers` (
   `created_by` int(11) DEFAULT NULL,
   `valid_from` datetime DEFAULT NULL,
   `valid_until` datetime DEFAULT NULL,
-  `status` enum('active','expired','disabled') DEFAULT 'active'
+  `status` enum('active','expired','disabled') DEFAULT 'active',
+  `type` enum('monthly','reward') NOT NULL DEFAULT 'monthly'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vouchers`
 --
 
-INSERT INTO `vouchers` (`voucherID`, `code`, `discount_value`, `created_by`, `valid_from`, `valid_until`, `status`) VALUES
-(8, 'BT555', 5.00, 1, '2025-06-30 00:00:00', '2025-07-12 00:00:00', 'active'),
-(21, 'BT450', 22.00, 1, '2025-07-18 00:00:00', '2025-07-27 00:00:00', 'active'),
-(22, 'Mt123', 33.00, 1, '2025-07-17 00:00:00', '2025-07-31 00:00:00', 'active'),
-(23, 'REWARD5', 5.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active'),
-(24, 'REWARD15', 15.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active'),
-(25, 'REWARD25', 25.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active');
+INSERT INTO `vouchers` (`voucherID`, `code`, `discount_value`, `created_by`, `valid_from`, `valid_until`, `status`, `type`) VALUES
+(8, 'BT555', 5.00, 1, '2025-06-30 00:00:00', '2025-07-12 00:00:00', 'active', 'monthly'),
+(21, 'BT450', 22.00, 1, '2025-07-18 00:00:00', '2025-07-27 00:00:00', 'active', 'monthly'),
+(22, 'Mt123', 33.00, 1, '2025-07-17 00:00:00', '2025-07-31 00:00:00', 'active', 'monthly'),
+(23, 'REWARD5', 5.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active', 'reward'),
+(24, 'REWARD15', 15.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active', 'reward'),
+(25, 'REWARD25', 25.00, NULL, '2025-01-01 00:00:00', '2030-12-31 23:59:59', 'active', 'reward');
 
 -- --------------------------------------------------------
 

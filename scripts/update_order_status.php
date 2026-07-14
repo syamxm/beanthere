@@ -7,8 +7,8 @@ require_once __DIR__ . '/../src/dbconn.php';
 
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
-$sql = "SELECT orderID, orderStatus, delivery, lastStatusUpdate 
-        FROM orders 
+$sql = "SELECT orderID, orderStatus, delivery, lastStatusUpdate, orderTime
+        FROM orders
         WHERE orderStatus NOT IN ('Delivered', 'Done Pickup')";
 $result = $conn->query($sql);
 
@@ -17,6 +17,9 @@ while ($row = $result->fetch_assoc()) {
   $currentStatus = $row['orderStatus'];
   $deliveryType = strtolower($row['delivery'] ?? '');
   $lastUpdate = strtotime($row['lastStatusUpdate'] ?? '');
+  if ($lastUpdate === false) {
+    $lastUpdate = strtotime($row['orderTime'] ?? '');
+  }
   if ($lastUpdate === false) {
     continue;
   }
