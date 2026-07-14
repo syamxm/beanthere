@@ -47,7 +47,7 @@ CREATE TABLE `admins` (
 
 CREATE TABLE `cart` (
   `cartID` int(11) NOT NULL,
-  `userID` int(11) DEFAULT NULL,
+  `userID` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `drinkType` varchar(50) NOT NULL,
   `roastLevel` varchar(50) NOT NULL,
@@ -55,10 +55,10 @@ CREATE TABLE `cart` (
   `milkType` varchar(50) NOT NULL,
   `sugarLevel` varchar(50) NOT NULL,
   `toppings` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
-  `total` float DEFAULT NULL,
+  `total` decimal(8,2) DEFAULT NULL,
   `qty` int(11) DEFAULT NULL,
   `syrups` text DEFAULT NULL,
-  `itemID` int(11) DEFAULT NULL
+  `itemID` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -95,7 +95,8 @@ CREATE TABLE `member_vouchers` (
   `membershipID` int(11) NOT NULL,
   `voucherID` int(11) NOT NULL,
   `assigned_at` datetime DEFAULT NULL,
-  `used` tinyint(1) DEFAULT 0
+  `used` tinyint(1) DEFAULT 0,
+  `grant_period` char(7) DEFAULT NULL COMMENT 'YYYY-MM for monthly grants, NULL for points redemptions'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -190,7 +191,7 @@ CREATE TABLE `orders` (
   `toppings` text DEFAULT NULL,
   `syrups` text DEFAULT NULL,
   `delivery` varchar(50) DEFAULT NULL,
-  `total` float DEFAULT NULL,
+  `total` decimal(8,2) DEFAULT NULL,
   `qty` int(11) DEFAULT NULL,
   `orderStatus` varchar(50) DEFAULT 'Pending',
   `orderTime` datetime DEFAULT NULL,
@@ -318,14 +319,17 @@ ALTER TABLE `cart`
 --
 ALTER TABLE `membership`
   ADD PRIMARY KEY (`membershipID`),
-  ADD KEY `userID` (`userID`);
+  ADD UNIQUE KEY `userID` (`userID`);
 
 --
 -- Indexes for table `member_vouchers`
+-- grant_period is part of the unique key: a monthly voucher lands once per
+-- calendar month, while points redemptions leave it NULL and NULLs never
+-- collide, so the same reward can be redeemed repeatedly.
 --
 ALTER TABLE `member_vouchers`
   ADD PRIMARY KEY (`memberVoucherID`),
-  ADD KEY `membershipID` (`membershipID`),
+  ADD UNIQUE KEY `member_voucher_period` (`membershipID`, `voucherID`, `grant_period`),
   ADD KEY `voucherID` (`voucherID`);
 
 --
@@ -344,18 +348,19 @@ ALTER TABLE `orders`
 --
 -- Indexes for table `users`
 --
+-- phone_number is deliberately not unique: families share one number.
 ALTER TABLE `users`
   ADD PRIMARY KEY (`userID`),
-  ADD KEY `username` (`username`),
+  ADD UNIQUE KEY `username` (`username`),
   ADD KEY `phone_number` (`phone_number`),
-  ADD KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- Indexes for table `vouchers`
 --
 ALTER TABLE `vouchers`
   ADD PRIMARY KEY (`voucherID`),
-  ADD KEY `code` (`code`),
+  ADD UNIQUE KEY `code` (`code`),
   ADD KEY `created_by` (`created_by`);
 
 --
@@ -409,6 +414,34 @@ ALTER TABLE `users`
 --
 ALTER TABLE `vouchers`
   MODIFY `voucherID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- Constraints for dumped tables
+--
+-- Deleting a menu item clears it from carts; everything else is RESTRICT so
+-- order and loyalty history cannot be silently destroyed.
+--
+
+ALTER TABLE `cart`
+  ADD CONSTRAINT `fk_cart_user` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_cart_item` FOREIGN KEY (`itemID`) REFERENCES `menu_items` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `orders`
+  ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE RESTRICT;
+
+ALTER TABLE `membership`
+  ADD CONSTRAINT `fk_membership_user` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE RESTRICT;
+
+ALTER TABLE `member_vouchers`
+  ADD CONSTRAINT `fk_mv_membership` FOREIGN KEY (`membershipID`) REFERENCES `membership` (`membershipID`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `fk_mv_voucher` FOREIGN KEY (`voucherID`) REFERENCES `vouchers` (`voucherID`) ON DELETE RESTRICT;
+
+ALTER TABLE `loyalty_ledger`
+  ADD CONSTRAINT `fk_ledger_user` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE RESTRICT;
+
+ALTER TABLE `rewards`
+  ADD CONSTRAINT `fk_rewards_voucher` FOREIGN KEY (`voucherID`) REFERENCES `vouchers` (`voucherID`) ON DELETE RESTRICT;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

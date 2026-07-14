@@ -56,20 +56,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
       $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
       $previewTheme = current_theme();
-      $insert = mysqli_prepare($conn, "INSERT INTO users (username, password, theme) VALUES (?, ?, ?)");
-      mysqli_stmt_bind_param($insert, "sss", $username, $hashedPassword, $previewTheme);
 
-      if (mysqli_stmt_execute($insert)) {
+      // The UNIQUE index is the real guard — the check above only decides the
+      // friendly message, and two simultaneous sign-ups can both pass it.
+      try {
+        $insert = mysqli_prepare($conn, "INSERT INTO users (username, password, theme) VALUES (?, ?, ?)");
+        mysqli_stmt_bind_param($insert, "sss", $username, $hashedPassword, $previewTheme);
+        mysqli_stmt_execute($insert);
+
         rate_limit_clear($conn, $ipIdentifier);
         session_regenerate_id(true);
         clear_admin_session();
         $_SESSION['current_user'] = $username;
         header("Location: user_dashboard.php");
         exit();
+      } catch (mysqli_sql_exception $e) {
+        $_SESSION['message'] = $e->getCode() == 1062
+          ? "Username is already taken."
+          : "Error while registering.";
+        $_SESSION['success'] = false;
       }
-
-      $_SESSION['message'] = "Error while registering.";
-      $_SESSION['success'] = false;
     }
   }
 
