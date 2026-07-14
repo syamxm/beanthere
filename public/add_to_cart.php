@@ -11,11 +11,12 @@ if (!isset($_SESSION['current_user'])) {
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/settings.php';
+require_once __DIR__ . '/../src/pricing.php';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   csrf_verify();
 
-  if (!store_status()['open']) {
+  if (!store_status($conn)['open']) {
     $_SESSION['message'] = "We're closed right now — ordering is paused until we reopen.";
     $_SESSION['success'] = false;
     header("Location: user_dashboard.php");
@@ -49,15 +50,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
 
   // Get item details, price always from DB
-  $categoryQuery = $conn->prepare("SELECT name, category, price FROM menu_items WHERE id = ?");
+  $categoryQuery = $conn->prepare("SELECT name, category, price, stock FROM menu_items WHERE id = ?");
   $categoryQuery->bind_param("i", $itemID);
   $categoryQuery->execute();
-  $categoryQuery->bind_result($name, $category, $basePrice);
+  $categoryQuery->bind_result($name, $category, $basePrice, $stock);
   $found = $categoryQuery->fetch();
   $categoryQuery->close();
 
   if (!$found) {
     $_SESSION['message'] = "That item is no longer available.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
+  }
+
+  $qty = 1;
+  if ($stock < $qty) {
+    $_SESSION['message'] = "$name is sold out right now.";
     $_SESSION['success'] = false;
     header("Location: user_dashboard.php");
     exit;
@@ -93,26 +102,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $syrups = array_intersect((array)($_POST['syrups'] ?? []), $allowedSyrups);
     $toppings = array_intersect((array)($_POST['toppings'] ?? []), $allowedToppings);
-    $qty = 1;
-
-    $total = $basePrice
-      + ($milkType !== 'Dairy' ? 1.00 : 0)
-      + count($syrups) * 0.50
-      + count($toppings) * 1.00;
 
     $syrups_text = implode(", ", $syrups);
     $toppings_text = implode(", ", $toppings);
+
+    $unitPrice = drink_unit_price((float)$basePrice, $milkType, $syrups_text, $toppings_text);
+    $total = cart_line_total($unitPrice, $qty);
 
     // Insert into cart
     $stmt = $conn->prepare("INSERT INTO cart (userID, name, drinkType, roastLevel, caffeineLevel, milkType, sugarLevel, syrups, toppings, total, qty, itemID)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssssssssdii", $userID, $name, $drinkType, $roastLevel, $caffeineLevel, $milkType, $sugarLevel, $syrups_text, $toppings_text, $total, $qty, $itemID);
   } else if ($category === "product") {
-    $qty = 1;
+    $total = cart_line_total((float)$basePrice, $qty);
+    $noDrinkOption = '';
 
-    $stmt = $conn->prepare("INSERT INTO cart (userID, name, total, qty, itemID)
-                            VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssdii", $userID, $name, $basePrice, $qty, $itemID);
+    // The drink columns are NOT NULL without a default, so a bean bag stores
+    // empty strings rather than omitting them.
+    $stmt = $conn->prepare("INSERT INTO cart (userID, name, drinkType, roastLevel, caffeineLevel, milkType, sugarLevel, total, qty, itemID)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param(
+      "sssssssdii",
+      $userID,
+      $name,
+      $noDrinkOption,
+      $noDrinkOption,
+      $noDrinkOption,
+      $noDrinkOption,
+      $noDrinkOption,
+      $total,
+      $qty,
+      $itemID
+    );
   } else {
     $_SESSION['message'] = "That item can't be added to the cart.";
     $_SESSION['success'] = false;
@@ -120,17 +141,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit;
   }
 
-  // Execute insert
-  if ($stmt->execute()) {
+  try {
+    $stmt->execute();
+    $stmt->close();
     header("Location: cart.php");
     exit;
+  } catch (mysqli_sql_exception $e) {
+    $_SESSION['message'] = "Something went wrong adding that to your cart — please try again.";
+    $_SESSION['success'] = false;
+    header("Location: user_dashboard.php");
+    exit;
   }
-
-  $stmt->close();
-  $_SESSION['message'] = "Something went wrong adding that to your cart — please try again.";
-  $_SESSION['success'] = false;
-  header("Location: user_dashboard.php");
-  exit;
 }
 
 $conn->close();

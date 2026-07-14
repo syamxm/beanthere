@@ -22,7 +22,7 @@ $stmt->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   csrf_verify();
 
-  if (!store_status()['open']) {
+  if (!store_status($conn)['open']) {
     $_SESSION['message'] = "We're closed right now — checkout is paused until we reopen.";
     $_SESSION['success'] = false;
     header("Location: cart.php");
@@ -51,10 +51,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   $deliveryMethod = ($_POST['delivery_method'] ?? '') === 'Delivery' ? 'Delivery' : 'Pickup';
   $deliveryCharge = $deliveryMethod === 'Delivery' ? 3.00 : 0.00;
 
-  // Validate voucher server-side: must belong to this user, be active, unused and in date
+  $cartRows = $result->fetch_all(MYSQLI_ASSOC);
+  $stmt->close();
+
+  if (empty($cartRows)) {
+    header("Location: cart.php");
+    exit;
+  }
+
+  $postedVoucherID = (isset($_POST['memberVoucherID']) && is_numeric($_POST['memberVoucherID']))
+    ? intval($_POST['memberVoucherID'])
+    : null;
+
+  $conn->begin_transaction();
+  try {
+
+  // Voucher is validated and locked inside the transaction: two checkouts
+  // racing on the same voucher cannot both see it as unused.
   $discountPercent = 0;
   $memberVoucherID = null;
-  if (isset($_POST['memberVoucherID']) && is_numeric($_POST['memberVoucherID'])) {
+  if ($postedVoucherID !== null) {
     $voucherStmt = $conn->prepare("
       SELECT mv.memberVoucherID, v.discount_value
       FROM member_vouchers mv
@@ -62,8 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
       JOIN membership m ON mv.membershipID = m.membershipID
       WHERE mv.memberVoucherID = ? AND m.userID = ? AND mv.used = 0
         AND v.status = 'active' AND CURDATE() BETWEEN v.valid_from AND v.valid_until
+      FOR UPDATE
     ");
-    $postedVoucherID = intval($_POST['memberVoucherID']);
     $voucherStmt->bind_param("ii", $postedVoucherID, $userID);
     $voucherStmt->execute();
     $voucherStmt->bind_result($memberVoucherID, $discountPercent);
@@ -74,21 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $voucherStmt->close();
   }
 
-  $conn->begin_transaction();
-  try {
-
   $subtotal = 0;
   $firstRow = true;
-  while ($row = $result->fetch_assoc()) {
+  foreach ($cartRows as $row) {
     $initialStatus = "Order Received";
 
-    $rowTotal = $row['total'] * (1 - $discountPercent / 100);
+    $rowTotal = round($row['total'] * (1 - $discountPercent / 100), 2);
     $subtotal += $rowTotal;
     if ($firstRow) {
-      $rowTotal += $deliveryCharge;
+      $rowTotal = round($rowTotal + $deliveryCharge, 2);
       $firstRow = false;
     }
-    $rowTotal = round($rowTotal, 2);
 
     $insert = $conn->prepare("INSERT INTO orders (
       userID, name, drinkType, roastLevel, caffeineLevel, milkType,
@@ -119,17 +131,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $delete->execute();
     $delete->close();
 
-    $update = $conn->prepare("UPDATE menu_items SET stock = stock - ? WHERE id = ?");
-    $update->bind_param("ii", $row['qty'], $row['itemID']);
+    // Only succeeds while enough stock is left, so two simultaneous checkouts
+    // cannot drive it negative — the loser rolls back below.
+    $update = $conn->prepare("UPDATE menu_items SET stock = stock - ? WHERE id = ? AND stock >= ?");
+    $update->bind_param("iii", $row['qty'], $row['itemID'], $row['qty']);
     $update->execute();
+    $stockTaken = $update->affected_rows === 1;
     $update->close();
+
+    if (!$stockTaken) {
+      throw new RuntimeException("Sorry — " . $row['name'] . " just sold out. Nothing was charged.");
+    }
   }
 
   if ($memberVoucherID !== null) {
     $updateVoucher = $conn->prepare("UPDATE member_vouchers SET used = 1 WHERE memberVoucherID = ? AND used = 0");
     $updateVoucher->bind_param("i", $memberVoucherID);
     $updateVoucher->execute();
+    $voucherConsumed = $updateVoucher->affected_rows === 1;
     $updateVoucher->close();
+
+    if (!$voucherConsumed) {
+      throw new RuntimeException("That voucher was already used. Nothing was charged — try again.");
+    }
   }
 
   $earnedPoints = 0;
@@ -149,6 +173,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   }
 
   $conn->commit();
+  } catch (RuntimeException $e) {
+    $conn->rollback();
+    $_SESSION['message'] = $e->getMessage();
+    $_SESSION['success'] = false;
+    header("Location: cart.php");
+    exit;
   } catch (mysqli_sql_exception $e) {
     $conn->rollback();
     $_SESSION['message'] = "Payment could not be completed — nothing was charged. Please try again.";
@@ -157,7 +187,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     exit;
   }
 
-  $stmt->close();
   $conn->close();
 
   $successText = "Payment via $paymentMethod completed successfully!";

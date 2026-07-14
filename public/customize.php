@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   exit;
 }
 
-if (!store_status()['open']) {
+if (!store_status($conn)['open']) {
   $_SESSION['message'] = "We're closed right now — ordering is paused until we reopen.";
   $_SESSION['success'] = false;
   header("Location: user_dashboard.php");
@@ -29,9 +29,15 @@ if ($itemID > 0) {
   $item = $stmt->get_result()->fetch_assoc();
   $stmt->close();
 }
-$conn->close();
 
 if (!$item) {
+  header("Location: user_dashboard.php");
+  exit;
+}
+
+if ((int)$item['stock'] < 1) {
+  $_SESSION['message'] = $item['name'] . " is sold out right now.";
+  $_SESSION['success'] = false;
   header("Location: user_dashboard.php");
   exit;
 }
