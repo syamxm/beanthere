@@ -164,7 +164,33 @@ Scheduled on the host crontab, calling into the app container:
 `update_order_status.php` advances order status over time; `assign_voucher.php`
 grants active members the vouchers marked `type = 'monthly'` (vouchers marked
 `type = 'reward'`, e.g. `REWARD5`/`REWARD15`/`REWARD25`, are only obtainable by
-spending loyalty points). Both refuse to run over HTTP and log to `logs/`.
+spending loyalty points). A monthly voucher is granted **once per calendar
+month** per member — `member_vouchers.grant_period` holds the `YYYY-MM` it was
+granted for, and a unique key makes a second grant in the same month impossible.
+Points redemptions leave `grant_period` NULL, so the same reward voucher can be
+redeemed as often as a member can pay for it. Both scripts refuse to run over
+HTTP and log to `logs/`.
+
+## Data integrity
+
+- **Money is `DECIMAL(8,2)`**, not float — `cart.total` and `orders.total`. Line
+  totals are recomputed as menu price × quantity on every change
+  (`src/pricing.php`), so repeatedly nudging the quantity cannot drift the price.
+- **Constraints do the enforcing.** Unique: `users.username`, `users.email`,
+  `vouchers.code`, `membership.userID`,
+  `member_vouchers(membershipID, voucherID, grant_period)`. Foreign keys cover
+  the money and loyalty paths; deleting a menu item cascades to carts, and
+  everything else is `RESTRICT` so order and points history cannot be silently
+  destroyed. `users.phone_number` is deliberately *not* unique — families share
+  a number. The check-then-insert paths (sign-up, membership application) catch
+  the duplicate-key error as the authoritative guard; the prior `SELECT` only
+  decides the friendly message.
+- **Stock cannot go negative.** Checkout decrements with
+  `... WHERE id = ? AND stock >= ?` inside the transaction and rolls the whole
+  order back if the row count is 0 ("just sold out" — nothing charged).
+- **Vouchers cannot be double-spent.** The voucher is validated with
+  `SELECT ... FOR UPDATE` inside the checkout transaction, and a `used = 1`
+  update that affects 0 rows rolls the checkout back.
 
 ## Security
 
