@@ -176,15 +176,37 @@ spending loyalty points). Both refuse to run over HTTP and log to `logs/`.
   re-hash on success when PHP's default algorithm/cost has moved on
   (`password_needs_rehash()`). Legacy plaintext passwords are *not* accepted
   or migrated — such accounts must reset.
-- **Login rate limiting** — `src/rate_limit.php`, shared by `user_login.php`
-  and `admin_login.php`. 5 failed attempts per username+IP locks that pair out
-  for 15 minutes; the DB table `login_attempts` tracks it (created by
-  `db/coffeebuddydb.sql` on fresh installs — see below to add it to an
-  existing database).
+- **Rate limiting** — `src/rate_limit.php`, backed by the `login_attempts`
+  table (created by `db/coffeebuddydb.sql` on fresh installs — see below to add
+  it to an existing database). Two counters run in parallel:
+  - 5 failed logins per **username+IP** (`user:<username>|<ip>`) locks that
+    pair out for 15 minutes;
+  - 20 failed logins per **IP** (`ip:login|<ip>`) locks the IP for 15 minutes,
+    so rotating through usernames from one host gets throttled too.
+
+  The same table also throttles sign-ups (10 per IP / 15 min) and the
+  recommendation chatbot (10 per session and per IP / minute — over the limit
+  the reply still comes, but from the rule-based path, so Ollama is protected).
+- **Input whitelisting** — order status, voucher status and every drink
+  attribute (type, roast, caffeine, sugar, milk, syrups, toppings) are checked
+  against a server-side allowlist; the browser form is never trusted.
+- **Registration rules** — password ≥ 6 characters, username ≤ 25, profile
+  fields capped to their column sizes, all enforced server-side.
 - **XSS** — all dynamic output goes through `htmlspecialchars()` or a numeric
   cast before reaching HTML.
 - **Session fixation** — `session_regenerate_id(true)` on every successful
   login (user and admin).
+- **Session hygiene** — logging in as a user clears any admin session keys and
+  vice versa (`src/session_role.php`). Residual limitation: both roles still
+  share one session cookie name, so a single browser cannot hold a user and an
+  admin session at the same time — the newer login wins. Separate cookie names
+  would fix it and are out of scope for the demo.
+- **PHP hardening** (`php/production.ini`, baked into the image) —
+  `display_errors=Off`, `log_errors=On` to stderr (so stack traces land in
+  `docker logs beanthere-app`, never in a response), `expose_php=Off`, and
+  session cookies with `HttpOnly`, `SameSite=Lax` and `session.use_strict_mode`.
+  Set `SESSION_COOKIE_SECURE=1` in `.env` on an HTTPS deployment to add the
+  `Secure` flag; it defaults to `0` so local HTTP development keeps working.
 - **Security headers** — set by Apache in the app container
   (`apache/security-headers.conf`), possible because the site makes zero
   third-party requests — Tailwind, fonts, icons and Chart.js
