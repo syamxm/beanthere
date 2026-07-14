@@ -20,7 +20,6 @@ $result = $conn->query("SELECT id, name, description, image_path, price, stock
 while ($row = $result->fetch_assoc()) {
   $beans[] = $row;
 }
-mysqli_close($conn);
 
 function level_dots(?string $level): string
 {
@@ -109,6 +108,7 @@ $pageTitle = 'Menu - Bean There';
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($beans as $row): ?>
         <form action="add_to_cart.php" method="post">
+          <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
           <input type="hidden" name="from_section" value="products">
           <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
