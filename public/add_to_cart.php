@@ -67,12 +67,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $allowedMilk = ["Dairy", "Oatside", "Almond", "Soy"];
     $allowedSyrups = ["Vanilla", "Caramel", "Hazelnut"];
     $allowedToppings = ["Whipped Cream", "Espresso Jelly"];
+    $allowedDrinkTypes = ["Hot", "Iced"];
+    $allowedRoastLevels = ["", "light", "medium", "dark"];
+    $allowedCaffeineLevels = ["", "low", "medium", "high"];
+    $allowedSugarLevels = ["0%", "25%", "50%", "75%", "100%"];
 
-    $drinkType = $_POST['drinkType'] ?? '';
+    $drinkType = $_POST['drinkType'] ?? 'Hot';
     $roastLevel = $_POST['roastLevel'] ?? '';
     $caffeineLevel = $_POST['caffeineLevel'] ?? '';
-    $milkType = in_array($_POST['milkType'] ?? '', $allowedMilk, true) ? $_POST['milkType'] : 'Dairy';
-    $sugarLevel = $_POST['sugarLevel'] ?? '';
+    $milkType = $_POST['milkType'] ?? 'Dairy';
+    $sugarLevel = $_POST['sugarLevel'] ?? '0%';
+
+    $optionsValid = in_array($drinkType, $allowedDrinkTypes, true)
+      && in_array($roastLevel, $allowedRoastLevels, true)
+      && in_array($caffeineLevel, $allowedCaffeineLevels, true)
+      && in_array($milkType, $allowedMilk, true)
+      && in_array($sugarLevel, $allowedSugarLevels, true);
+
+    if (!$optionsValid) {
+      $_SESSION['message'] = "Those drink options aren't available — please pick from the menu.";
+      $_SESSION['success'] = false;
+      header("Location: user_dashboard.php");
+      exit;
+    }
+
     $syrups = array_intersect((array)($_POST['syrups'] ?? []), $allowedSyrups);
     $toppings = array_intersect((array)($_POST['toppings'] ?? []), $allowedToppings);
     $qty = 1;
