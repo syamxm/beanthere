@@ -72,6 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($username)) {
     $errors[] = "Username cannot be empty.";
+  } elseif (mb_strlen($username) > 25) {
+    $errors[] = "Username must be 25 characters or fewer.";
+  }
+
+  if (mb_strlen($phone) > 20) {
+    $errors[] = "Phone number must be 20 characters or fewer.";
+  }
+
+  if (mb_strlen($email) > 100) {
+    $errors[] = "Email must be 100 characters or fewer.";
   }
 
   if (!empty($password)) {
