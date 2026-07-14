@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   // Validate selected IDs
   $placeholders = implode(',', array_fill(0, count($selectedIDs), '?'));
   $types = str_repeat('i', count($selectedIDs) + 1); // +1 for userID
+  // nosemgrep: php.lang.security.injection.tainted-sql-string.tainted-sql-string -- $placeholders is only "?" marks; all values are bound below
   $sql = "SELECT * FROM cart WHERE userID = ? AND cartID IN ($placeholders)";
   $stmt = $conn->prepare($sql);
   $params = array_merge([$userID], $selectedIDs);
@@ -164,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $successText .= " You earned $earnedPoints points!";
   }
   $paymentMessage = json_encode($successText, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+  // nosemgrep: php.lang.security.injection.echoed-request.echoed-request -- $paymentMessage is json_encode'd with HEX flags, safe in this script context
   echo "<script>
     alert($paymentMessage);
     window.location.href = 'user_order_tracking.php';

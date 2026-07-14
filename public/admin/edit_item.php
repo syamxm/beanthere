@@ -56,7 +56,7 @@ $pageTitle = 'Edit item - Bean There Admin';
 
     <form action="update_item.php" method="post" enctype="multipart/form-data" class="admin-form">
       <?= csrf_field() ?>
-      <input type="hidden" name="id" value="<?= $id ?>">
+      <input type="hidden" name="id" value="<?= (int)$id /* nosemgrep: php.lang.security.injection.echoed-request.echoed-request -- cast to int above, cannot carry markup */ ?>">
 
       <label for="name">Item name</label>
       <input type="text" id="name" name="name" value="<?= htmlspecialchars($row['name']) ?>" required>

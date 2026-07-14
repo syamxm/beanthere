@@ -52,6 +52,7 @@ if ($recommendation === null) {
 
 $drink = $recommendation['drink'];
 
+// nosemgrep: php.lang.security.injection.echoed-request.echoed-request -- JSON API response with application/json content type, not HTML output
 echo json_encode([
   'reply' => $recommendation['reason'],
   'source' => $source,
