@@ -4,6 +4,29 @@ const MENU_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 const MENU_IMAGE_MAX_WIDTH = 800;
 
 /**
+ * Deletes an uploaded menu image. Only touches files under public/assets/menu,
+ * so the seeded assets/images/* artwork can never be removed by mistake.
+ */
+function delete_menu_image(?string $path): void
+{
+  if ($path === null || !str_starts_with($path, 'assets/menu/')) {
+    return;
+  }
+
+  $uploadDir = realpath(__DIR__ . '/../public/assets/menu');
+  $file = realpath(__DIR__ . '/../public/' . $path);
+
+  if ($uploadDir === false || $file === false) {
+    return;
+  }
+  if (!str_starts_with($file, $uploadDir . DIRECTORY_SEPARATOR)) {
+    return;
+  }
+
+  @unlink($file);
+}
+
+/**
  * Validates and stores an uploaded menu image.
  * Re-encodes through GD (strips metadata, normalizes to jpg) and resizes to max 800px wide.
  * Returns ['path' => 'assets/menu/<hex>.jpg'] on success, ['error' => message] on failure,

@@ -37,14 +37,19 @@ if (
     exit;
   }
 
-  $image_path = $upload['path'];
+  $currentStmt = mysqli_prepare($conn, "SELECT image_path FROM menu_items WHERE id = ?");
+  mysqli_stmt_bind_param($currentStmt, "i", $id);
+  mysqli_stmt_execute($currentStmt);
+  mysqli_stmt_bind_result($currentStmt, $currentImagePath);
+  mysqli_stmt_fetch($currentStmt);
+  mysqli_stmt_close($currentStmt);
+
+  $image_path = $upload['path'] ?? null;
+  $replacedImagePath = null;
   if ($image_path === null) {
-    $currentStmt = mysqli_prepare($conn, "SELECT image_path FROM menu_items WHERE id = ?");
-    mysqli_stmt_bind_param($currentStmt, "i", $id);
-    mysqli_stmt_execute($currentStmt);
-    mysqli_stmt_bind_result($currentStmt, $image_path);
-    mysqli_stmt_fetch($currentStmt);
-    mysqli_stmt_close($currentStmt);
+    $image_path = $currentImagePath;
+  } elseif ($image_path !== $currentImagePath) {
+    $replacedImagePath = $currentImagePath;
   }
   $price = floatval($_POST['price']);
   $old_price = ($_POST['old_price'] === '') ? null : floatval($_POST['old_price']);
@@ -122,6 +127,7 @@ if (
   }
 
   if ($stmt && mysqli_stmt_execute($stmt)) {
+    delete_menu_image($replacedImagePath);
     $_SESSION['message'] = "✅ Item updated successfully.";
     mysqli_stmt_close($stmt);
   } else {
