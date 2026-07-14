@@ -118,7 +118,7 @@ if ($tier['next'] !== null) {
 $pageTitle = 'Rewards - Bean There';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>

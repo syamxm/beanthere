@@ -14,7 +14,7 @@ while ($row = $result->fetch_assoc()) {
 $pageTitle = 'Bean There - Small-batch coffee';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>

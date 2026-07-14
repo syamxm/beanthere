@@ -3,6 +3,7 @@ session_start();
 
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/theme.php';
 
 $message = $_SESSION['message'] ?? "";
 $success = $_SESSION['success'] ?? false;
@@ -34,8 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $_SESSION['success'] = false;
     } else {
       $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-      $insert = mysqli_prepare($conn, "INSERT INTO users (username, password) VALUES (?, ?)");
-      mysqli_stmt_bind_param($insert, "ss", $username, $hashedPassword);
+      $previewTheme = current_theme();
+      $insert = mysqli_prepare($conn, "INSERT INTO users (username, password, theme) VALUES (?, ?, ?)");
+      mysqli_stmt_bind_param($insert, "sss", $username, $hashedPassword, $previewTheme);
 
       if (mysqli_stmt_execute($insert)) {
         session_regenerate_id(true);
@@ -62,7 +64,7 @@ if (isset($_SESSION['old'])) {
 $pageTitle = 'Sign up - Bean There';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>
