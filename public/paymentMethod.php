@@ -92,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
 
     $insert = $conn->prepare("INSERT INTO orders (
       userID, name, drinkType, roastLevel, caffeineLevel, milkType,
-      sugarLevel, toppings, syrups, delivery, total, qty, orderStatus, orderTime
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+      sugarLevel, toppings, syrups, delivery, total, qty, orderStatus, orderTime, lastStatusUpdate
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
 
     $insert->bind_param(
       "isssssssssdis",

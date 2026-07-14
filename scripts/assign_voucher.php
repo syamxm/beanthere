@@ -16,10 +16,11 @@ $logPath = __DIR__ . "/../logs/voucher_log.txt";
 $timestamp = date("Y-m-d H:i:s");
 file_put_contents($logPath, "[$timestamp] Starting voucher assignment...\n", FILE_APPEND);
 
-// Step 1: Get all valid vouchers
+// Step 1: Get all valid monthly vouchers (reward vouchers are earned with points only)
 $today = date('Y-m-d');
-$sql = "SELECT voucherID, code FROM vouchers 
-        WHERE status = 'active' AND valid_from <= ? AND valid_until >= ?";
+$sql = "SELECT voucherID, code FROM vouchers
+        WHERE status = 'active' AND type = 'monthly'
+          AND valid_from <= ? AND valid_until >= ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ss", $today, $today);
 $stmt->execute();

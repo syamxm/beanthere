@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   if ($category === "menu") {
     $allowedMilk = ["Dairy", "Oatside", "Almond", "Soy"];
     $allowedSyrups = ["Vanilla", "Caramel", "Hazelnut"];
-    $allowedToppings = ["Whipped Cream", "Expresso Jelly"];
+    $allowedToppings = ["Whipped Cream", "Espresso Jelly"];
 
     $drinkType = $_POST['drinkType'] ?? '';
     $roastLevel = $_POST['roastLevel'] ?? '';

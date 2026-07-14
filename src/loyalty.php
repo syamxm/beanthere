@@ -8,14 +8,16 @@ const LOYALTY_TIERS = [
 
 function get_tier(int $lifetimePoints): array
 {
+  $matched = count(LOYALTY_TIERS) - 1;
   foreach (LOYALTY_TIERS as $i => $tier) {
     if ($lifetimePoints >= $tier['min']) {
-      $tier['next'] = $i > 0 ? LOYALTY_TIERS[$i - 1] : null;
-      return $tier;
+      $matched = $i;
+      break;
     }
   }
-  $tier = LOYALTY_TIERS[count(LOYALTY_TIERS) - 1];
-  $tier['next'] = LOYALTY_TIERS[count(LOYALTY_TIERS) - 2];
+
+  $tier = LOYALTY_TIERS[$matched];
+  $tier['next'] = $matched > 0 ? LOYALTY_TIERS[$matched - 1] : null;
   return $tier;
 }
 

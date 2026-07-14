@@ -162,8 +162,9 @@ Scheduled on the host crontab, calling into the app container:
 ```
 
 `update_order_status.php` advances order status over time; `assign_voucher.php`
-grants valid vouchers to active members. Both refuse to run over HTTP and log to
-`logs/`.
+grants active members the vouchers marked `type = 'monthly'` (vouchers marked
+`type = 'reward'`, e.g. `REWARD5`/`REWARD15`/`REWARD25`, are only obtainable by
+spending loyalty points). Both refuse to run over HTTP and log to `logs/`.
 
 ## Security
 
@@ -172,8 +173,9 @@ grants valid vouchers to active members. Both refuse to run over HTTP and log to
   parameters. There is no raw string interpolation of request input into SQL
   anywhere in the app.
 - **Passwords** — `password_hash()`/`password_verify()` (bcrypt). Logins also
-  transparently upgrade any legacy plaintext-equality match to a proper hash
-  on next successful login.
+  re-hash on success when PHP's default algorithm/cost has moved on
+  (`password_needs_rehash()`). Legacy plaintext passwords are *not* accepted
+  or migrated — such accounts must reset.
 - **Login rate limiting** — `src/rate_limit.php`, shared by `user_login.php`
   and `admin_login.php`. 5 failed attempts per username+IP locks that pair out
   for 15 minutes; the DB table `login_attempts` tracks it (created by
@@ -185,7 +187,9 @@ grants valid vouchers to active members. Both refuse to run over HTTP and log to
   login (user and admin).
 - **Security headers** — set by Apache in the app container
   (`apache/security-headers.conf`), possible because the site makes zero
-  third-party requests since Tailwind/fonts/icons were self-hosted:
+  third-party requests — Tailwind, fonts, icons and Chart.js
+  (`public/assets/vendor/chart.umd.min.js`, pinned to 4.4.7) are all
+  self-hosted:
   - `Content-Security-Policy: default-src 'self'; script-src 'self'
     'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;
     font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self';
@@ -219,7 +223,9 @@ One line per gate:
 - **build** — the Docker image must build (includes the Tailwind compile stage).
 - **trivy fs** — Dockerfile/compose misconfiguration scan (accepted exceptions live in `.trivyignore`, one comment each).
 - **trivy image** — HIGH/CRITICAL CVE scan of the built image; `ignore-unfixed` because base-image CVEs without a Debian fix are not actionable here.
-- **deploy** — on merge to `main` only, over Tailscale SSH (see `deploy.yml`).
+- **deploy** — over Tailscale SSH (see `deploy.yml`). Triggered by
+  `workflow_run`: it waits for CI on `main` to finish and only runs when the
+  conclusion is `success`, so a red pipeline never reaches the server.
 
 ### Applying `login_attempts` to an existing database
 

@@ -10,6 +10,11 @@ require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
 require_once __DIR__ . '/../../src/image_upload.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  header('Location: view_items.php');
+  exit();
+}
+
 csrf_verify();
 
 // Validate and sanitize input

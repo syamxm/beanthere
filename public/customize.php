@@ -132,7 +132,7 @@ $pageTitle = 'Customise - Bean There';
           </label>
           <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
             <span>Espresso Jelly</span>
-            <input type="checkbox" name="toppings[]" value="Expresso Jelly" class="topping accent-[#c49b63] w-4 h-4">
+            <input type="checkbox" name="toppings[]" value="Espresso Jelly" class="topping accent-[#c49b63] w-4 h-4">
           </label>
         </div>
       <?php endif; ?>

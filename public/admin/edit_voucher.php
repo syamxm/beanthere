@@ -8,6 +8,9 @@ if (!isset($_SESSION['current_admin'])) {
 
 require_once __DIR__ . '/../../src/dbconn.php';
 require_once __DIR__ . '/../../src/csrf.php';
+require_once __DIR__ . '/../../src/voucher_status.php';
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 if (!isset($_GET['voucherID'])) {
   header("Location: manage_voucher.php");
@@ -35,17 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $discount = max(0, min(100, floatval($_POST['discount_value'])));
   $valid_from = $_POST['valid_from'];
   $valid_until = $_POST['valid_until'];
-  $status = $_POST['status'];
+  $status = valid_voucher_status($_POST['status'] ?? null) ? $_POST['status'] : $voucher['status'];
 
-  $stmt = $conn->prepare("UPDATE vouchers SET code = ?, discount_value = ?, valid_from = ?, valid_until = ?, status = ? WHERE voucherID = ?");
-  $stmt->bind_param("sdsssi", $code, $discount, $valid_from, $valid_until, $status, $voucherID);
+  try {
+    $stmt = $conn->prepare("UPDATE vouchers SET code = ?, discount_value = ?, valid_from = ?, valid_until = ?, status = ? WHERE voucherID = ?");
+    $stmt->bind_param("sdsssi", $code, $discount, $valid_from, $valid_until, $status, $voucherID);
+    $stmt->execute();
+    $stmt->close();
 
-  if ($stmt->execute()) {
     header("Location: manage_voucher.php");
     exit();
+  } catch (mysqli_sql_exception $e) {
+    $error = $e->getCode() == 1062
+      ? "Voucher code '$code' already exists."
+      : "Update failed. Please try again.";
   }
-  $error = "Update failed. Please try again.";
-  $stmt->close();
 }
 
 $conn->close();
@@ -85,8 +92,9 @@ $pageTitle = 'Edit voucher - Bean There Admin';
 
       <label for="status">Status</label>
       <select name="status" id="status" required>
-        <option value="active" <?= $voucher['status'] === 'active' ? 'selected' : '' ?>>Active</option>
-        <option value="inactive" <?= $voucher['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+        <?php foreach (VOUCHER_STATUSES as $option): ?>
+          <option value="<?= $option ?>" <?= $voucher['status'] === $option ? 'selected' : '' ?>><?= ucfirst($option) ?></option>
+        <?php endforeach; ?>
       </select>
 
       <button type="submit" class="btn-caramel w-full mt-5">Update voucher</button>
