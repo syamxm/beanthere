@@ -183,6 +183,43 @@ grants valid vouchers to active members. Both refuse to run over HTTP and log to
   cast before reaching HTML.
 - **Session fixation** — `session_regenerate_id(true)` on every successful
   login (user and admin).
+- **Security headers** — set by Apache in the app container
+  (`apache/security-headers.conf`), possible because the site makes zero
+  third-party requests since Tailwind/fonts/icons were self-hosted:
+  - `Content-Security-Policy: default-src 'self'; script-src 'self'
+    'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;
+    font-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self';
+    frame-ancestors 'none'` — `'unsafe-inline'` is kept for scripts/styles
+    because the app uses small per-page inline `<script>` blocks (menu
+    toggles, price calculators, drag reorder) and inline style attributes;
+    none of them interpolate raw user input (values pass through
+    `json_encode`/`htmlspecialchars`). Tightening to nonces is possible later
+    by moving those blocks into files.
+  - `X-Content-Type-Options: nosniff`, `Referrer-Policy:
+    strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
+    `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+  - If the host nginx (or Cloudflare) also sets any of these, remove the
+    duplicate from one side — duplicated CSP headers get combined and the
+    strictest wins, but duplicated `X-Frame-Options` can confuse browsers.
+
+## DevSecOps pipeline
+
+```
+lint ──┐
+       ├──▶ build ──▶ trivy ──▶ (merge) ──▶ deploy
+semgrep┘
+gitleaks (parallel, plus weekly full-history scheduled scan)
+```
+
+One line per gate:
+
+- **lint** — `php -l` on every PHP file; catches syntax errors before anything else runs.
+- **semgrep** (`p/php` + `p/security-audit`, ERROR severity) — static analysis for injection, XSS and insecure-code patterns; false positives are suppressed inline with `// nosemgrep: rule-id -- reason`.
+- **gitleaks** — scans commits for committed secrets (API keys, passwords); runs on every push/PR and a full-history sweep every Monday.
+- **build** — the Docker image must build (includes the Tailwind compile stage).
+- **trivy fs** — Dockerfile/compose misconfiguration scan (accepted exceptions live in `.trivyignore`, one comment each).
+- **trivy image** — HIGH/CRITICAL CVE scan of the built image; `ignore-unfixed` because base-image CVEs without a Debian fix are not actionable here.
+- **deploy** — on merge to `main` only, over Tailscale SSH (see `deploy.yml`).
 
 ### Applying `login_attempts` to an existing database
 

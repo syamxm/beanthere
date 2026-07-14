@@ -10,3 +10,4 @@ vendor
 *.mp4
 beantheredb-fullData-backup.sql
 SQL
+node_modules

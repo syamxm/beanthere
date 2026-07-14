@@ -1,0 +1,3 @@
+# DS-0002: php:8.2-apache starts as root so Apache can bind :80, then drops
+# worker processes to www-data. Standard behaviour for this official image.
+AVD-DS-0002

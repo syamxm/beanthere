@@ -23,12 +23,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install mysqli gd \
-    && a2enmod rewrite
+    && a2enmod rewrite headers
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
       /etc/apache2/sites-available/000-default.conf \
       /etc/apache2/apache2.conf
+
+COPY apache/security-headers.conf /etc/apache2/conf-available/security-headers.conf
+RUN a2enconf security-headers
 
 COPY . /var/www/html
 COPY --from=assets /build/tailwind.css /var/www/html/public/assets/tailwind.css
