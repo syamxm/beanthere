@@ -439,7 +439,7 @@ INSERT INTO `users` (`userID`, `username`, `password`, `phone_number`, `email`, 
 --
 
 CREATE TABLE `login_attempts` (
-  `identifier` varchar(191) NOT NULL COMMENT 'lowercased username + | + IP',
+  `identifier` varchar(191) NOT NULL COMMENT 'user:<username>|<ip> or ip:<scope>|<ip>',
   `attempts` int(11) NOT NULL DEFAULT 1,
   `first_attempt_at` datetime NOT NULL,
   `locked_until` datetime DEFAULT NULL,

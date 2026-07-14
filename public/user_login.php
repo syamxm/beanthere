@@ -5,6 +5,7 @@ require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/rate_limit.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/theme.php';
+require_once __DIR__ . '/../src/session_role.php';
 
 $allowedReturns = ['cart.php', 'user_dashboard.php', 'recommendation.php', 'membership.php', 'voucher.php', 'user_order_tracking.php', 'edit_user_detail.php', 'user_verify.php'];
 
@@ -30,7 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['success'] = false;
   } else {
     $identifier = rate_limit_identifier($username);
-    $lockedFor = rate_limit_check($conn, $identifier);
+    $ipIdentifier = rate_limit_ip_identifier('login');
+    $lockedFor = rate_limit_check($conn, $identifier) ?? rate_limit_check($conn, $ipIdentifier);
 
     if ($lockedFor !== null) {
       $_SESSION['message'] = "Too many attempts. Try again in " . ceil($lockedFor / 60) . " minute(s).";
@@ -63,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         rate_limit_clear($conn, $identifier);
         session_regenerate_id(true);
+        clear_admin_session();
         $_SESSION['current_user'] = $current_user;
         $_SESSION['theme'] = valid_theme((string)$userTheme) ? $userTheme : DEFAULT_THEME;
         $_SESSION['accent'] = ($userAccent !== null && valid_accent($userAccent)) ? $userAccent : null;
@@ -71,7 +74,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
       }
 
-      rate_limit_record_failure($conn, $identifier);
+      rate_limit_record($conn, $identifier);
+      rate_limit_record($conn, $ipIdentifier, RATE_LIMIT_IP_MAX_ATTEMPTS);
       $_SESSION['message'] = "Invalid credentials, please try again.";
       $_SESSION['success'] = false;
     }

@@ -33,6 +33,8 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 COPY apache/security-headers.conf /etc/apache2/conf-available/security-headers.conf
 RUN a2enconf security-headers
 
+COPY php/production.ini /usr/local/etc/php/conf.d/zz-production.ini
+
 COPY . /var/www/html
 COPY --from=assets /build/tailwind.css /var/www/html/public/assets/tailwind.css
 RUN mkdir -p /var/www/html/logs /var/www/html/public/assets/menu \

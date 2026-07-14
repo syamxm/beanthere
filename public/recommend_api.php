@@ -6,8 +6,11 @@ require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/get_recommendation.php';
 require_once __DIR__ . '/../src/ollama.php';
+require_once __DIR__ . '/../src/rate_limit.php';
 
 const CHAT_MESSAGE_MAX_LENGTH = 300;
+const CHAT_MAX_PER_MINUTE = 10;
+const CHAT_WINDOW_SECONDS = 60;
 
 header('Content-Type: application/json');
 
@@ -26,6 +29,16 @@ if ($message === '') {
 }
 $message = mb_substr($message, 0, CHAT_MESSAGE_MAX_LENGTH);
 
+// Over the limit the answer still comes, but from the rule-based path only —
+// the model is the expensive part worth protecting.
+$sessionIdentifier = 'chat:' . session_id();
+$ipIdentifier = rate_limit_ip_identifier('chat');
+$throttled = rate_limit_check($conn, $sessionIdentifier) !== null
+  || rate_limit_check($conn, $ipIdentifier) !== null;
+
+rate_limit_record($conn, $sessionIdentifier, CHAT_MAX_PER_MINUTE, CHAT_WINDOW_SECONDS);
+rate_limit_record($conn, $ipIdentifier, CHAT_MAX_PER_MINUTE, CHAT_WINDOW_SECONDS);
+
 $drinks = fetch_menu_drinks($conn);
 $conn->close();
 
@@ -37,7 +50,7 @@ if (!$drinks) {
 $recommendation = null;
 $source = 'fallback';
 
-$fromModel = ollama_recommend($drinks, $message);
+$fromModel = $throttled ? null : ollama_recommend($drinks, $message);
 if ($fromModel !== null) {
   $drink = find_drink_by_id($drinks, $fromModel['drink_id']);
   if ($drink !== null) {
