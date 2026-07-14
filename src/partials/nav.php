@@ -1,7 +1,12 @@
 <?php
 require_once __DIR__ . '/../settings.php';
 require_once __DIR__ . '/../loyalty.php';
+require_once __DIR__ . '/../csrf.php';
+require_once __DIR__ . '/../theme.php';
 $isLoggedIn = isset($_SESSION['current_user']);
+$navThemeKeys = array_keys(theme_options());
+$navNextTheme = $navThemeKeys[(array_search(current_theme(), $navThemeKeys, true) + 1) % count($navThemeKeys)];
+$navNextThemeLabel = theme_options()[$navNextTheme]['label'];
 $storeStatus = store_status();
 $navPoints = $isLoggedIn ? get_balance_for_nav($_SESSION['current_user']) : null;
 ?>
@@ -24,6 +29,15 @@ $navPoints = $isLoggedIn ? get_balance_for_nav($_SESSION['current_user']) : null
       <a href="user_dashboard.php" class="text-crema hover:text-caramel">Menu</a>
       <a href="recommendation.php" class="text-crema hover:text-caramel">Recommend Me</a>
       <a href="search.php" class="text-crema hover:text-caramel">Search</a>
+
+      <form method="post" action="set_theme.php">
+        <?= csrf_field() ?>
+        <input type="hidden" name="theme" value="<?= htmlspecialchars($navNextTheme) ?>">
+        <input type="hidden" name="return" value="<?= htmlspecialchars(basename($_SERVER['PHP_SELF'])) ?>">
+        <button type="submit" class="text-crema hover:text-caramel" title="Switch theme: <?= htmlspecialchars($navNextThemeLabel) ?>" aria-label="Switch theme">
+          <i class="fa-solid fa-palette"></i>
+        </button>
+      </form>
 
       <?php if ($isLoggedIn): ?>
         <a href="cart.php" class="text-crema hover:text-caramel"><i class="fa-solid fa-cart-shopping mr-1"></i>Cart</a>
