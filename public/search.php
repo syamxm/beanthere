@@ -20,7 +20,7 @@ while ($row = mysqli_fetch_assoc($resultAllItem)) {
 $pageTitle = 'Search - Bean There';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>

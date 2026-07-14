@@ -8,12 +8,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        espresso: '#16100b',
-        roast: '#241a12',
-        bean: '#3a2a1a',
-        crema: '#ede4d3',
-        foam: '#9c8b74',
-        caramel: '#c49b63',
+        espresso: 'rgb(var(--c-espresso) / <alpha-value>)',
+        roast: 'rgb(var(--c-roast) / <alpha-value>)',
+        bean: 'rgb(var(--c-bean) / <alpha-value>)',
+        crema: 'rgb(var(--c-crema) / <alpha-value>)',
+        foam: 'rgb(var(--c-foam) / <alpha-value>)',
+        caramel: 'rgb(var(--c-caramel) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],

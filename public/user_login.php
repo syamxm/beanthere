@@ -4,6 +4,7 @@ session_start();
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/rate_limit.php';
 require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/theme.php';
 
 $allowedReturns = ['cart.php', 'user_dashboard.php', 'recommendation.php', 'membership.php', 'voucher.php', 'user_order_tracking.php', 'edit_user_detail.php', 'user_verify.php'];
 
@@ -35,10 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $_SESSION['message'] = "Too many attempts. Try again in " . ceil($lockedFor / 60) . " minute(s).";
       $_SESSION['success'] = false;
     } else {
-      $stmt = mysqli_prepare($conn, "SELECT username, password FROM users WHERE username = ?");
+      $stmt = mysqli_prepare($conn, "SELECT username, password, theme, accent_color FROM users WHERE username = ?");
       mysqli_stmt_bind_param($stmt, "s", $username);
       mysqli_stmt_execute($stmt);
-      mysqli_stmt_bind_result($stmt, $current_user, $storedPassword);
+      mysqli_stmt_bind_result($stmt, $current_user, $storedPassword, $userTheme, $userAccent);
       $found = mysqli_stmt_fetch($stmt);
       mysqli_stmt_close($stmt);
 
@@ -63,6 +64,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         rate_limit_clear($conn, $identifier);
         session_regenerate_id(true);
         $_SESSION['current_user'] = $current_user;
+        $_SESSION['theme'] = valid_theme((string)$userTheme) ? $userTheme : DEFAULT_THEME;
+        $_SESSION['accent'] = ($userAccent !== null && valid_accent($userAccent)) ? $userAccent : null;
 
         header("Location: " . $return);
         exit();
@@ -87,7 +90,7 @@ if (isset($_SESSION['old'])) {
 $pageTitle = 'Log in - Bean There';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>

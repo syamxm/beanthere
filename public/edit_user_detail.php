@@ -9,6 +9,7 @@ if (!isset($_SESSION["current_user"])) {
 require_once __DIR__ . '/../src/dbconn.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/loyalty.php';
+require_once __DIR__ . '/../src/theme.php';
 
 $current_username = $_SESSION["current_user"];
 
@@ -16,7 +17,7 @@ $flash_success = $_SESSION['flash_success'] ?? "";
 $flash_errors = $_SESSION['flash_errors'] ?? [];
 unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
 
-$sql = "SELECT userID, username, password, phone_number, email, lifetime_points FROM users WHERE username = ?";
+$sql = "SELECT userID, username, password, phone_number, email, lifetime_points, theme, accent_color FROM users WHERE username = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $current_username);
 $stmt->execute();
@@ -28,6 +29,34 @@ if ($result->num_rows !== 1) {
   exit;
 }
 $user = $result->fetch_assoc();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form'] ?? '') === 'theme') {
+  csrf_verify();
+
+  $theme = $_POST['theme'] ?? '';
+  $accent = strtolower(trim($_POST['accent'] ?? ''));
+  $useDefaultAccent = isset($_POST['accent_default']);
+
+  if (!is_string($theme) || !valid_theme($theme)) {
+    $_SESSION['flash_errors'] = ["Invalid theme choice."];
+  } elseif (!$useDefaultAccent && !valid_accent($accent)) {
+    $_SESSION['flash_errors'] = ["Invalid accent colour."];
+  } else {
+    $accentValue = $useDefaultAccent ? null : $accent;
+    $stmt = $conn->prepare("UPDATE users SET theme = ?, accent_color = ? WHERE userID = ?");
+    $stmt->bind_param("ssi", $theme, $accentValue, $user['userID']);
+    if ($stmt->execute()) {
+      $_SESSION['theme'] = $theme;
+      $_SESSION['accent'] = $accentValue;
+      $_SESSION['flash_success'] = "Theme saved.";
+    } else {
+      $_SESSION['flash_errors'] = ["Failed to save theme."];
+    }
+    $stmt->close();
+  }
+  header("Location: edit_user_detail.php");
+  exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_verify();
@@ -119,10 +148,14 @@ $conn->close();
 
 $tier = get_tier((int)$user['lifetime_points']);
 
+$themeOptions = theme_options();
+$currentTheme = valid_theme((string)$user['theme']) ? $user['theme'] : DEFAULT_THEME;
+$currentAccent = ($user['accent_color'] !== null && valid_accent($user['accent_color'])) ? $user['accent_color'] : null;
+
 $pageTitle = 'My profile - Bean There';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<?php include __DIR__ . '/../src/partials/html_open.php'; ?>
 
 <head>
   <?php include __DIR__ . '/../src/partials/head.php'; ?>
@@ -177,10 +210,48 @@ $pageTitle = 'My profile - Bean There';
 
         <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Save changes</button>
       </form>
+
+      <h2 class="text-xl font-bold mt-10 mb-4">Site theme</h2>
+      <form method="POST" action="edit_user_detail.php" class="bg-roast border border-bean rounded-2xl p-6">
+        <?= csrf_field() ?>
+        <input type="hidden" name="form" value="theme">
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <?php foreach ($themeOptions as $key => $t): ?>
+            <label class="cursor-pointer">
+              <input type="radio" name="theme" value="<?= htmlspecialchars($key) ?>" data-theme-option
+                data-accent="<?= htmlspecialchars($t['accent']) ?>" class="peer sr-only" <?= $key === $currentTheme ? 'checked' : '' ?>>
+              <span class="block rounded-xl border-2 border-bean peer-checked:border-caramel p-3"
+                style="background: <?= $t['bg'] ?>">
+                <span class="flex gap-1.5 mb-2">
+                  <span class="w-4 h-4 rounded-full" style="background: <?= $t['surface'] ?>; border: 1px solid <?= $t['border'] ?>"></span>
+                  <span class="w-4 h-4 rounded-full" style="background: <?= $t['accent'] ?>"></span>
+                  <span class="w-4 h-4 rounded-full" style="background: <?= $t['text'] ?>"></span>
+                </span>
+                <span class="text-sm font-semibold" style="color: <?= $t['text'] ?>"><?= htmlspecialchars($t['label']) ?></span>
+              </span>
+            </label>
+          <?php endforeach; ?>
+        </div>
+
+        <label for="accentColor" class="block text-sm text-foam mb-1.5">Accent colour</label>
+        <div class="flex items-center gap-3 mb-6">
+          <input type="color" id="accentColor" name="accent"
+            value="<?= htmlspecialchars($currentAccent ?? $themeOptions[$currentTheme]['accent']) ?>"
+            class="w-10 h-10 rounded cursor-pointer bg-transparent border border-bean">
+          <label class="flex items-center gap-2 text-sm text-foam">
+            <input type="checkbox" name="accent_default" id="accentDefault" <?= $currentAccent === null ? 'checked' : '' ?>>
+            Use theme default
+          </label>
+        </div>
+
+        <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-2.5 rounded-lg hover:bg-crema transition">Save theme</button>
+      </form>
     </div>
   </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
+  <script src="assets/theme.js"></script>
 </body>
 
 </html>

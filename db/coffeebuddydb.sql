@@ -216,7 +216,9 @@ CREATE TABLE `users` (
   `phone_number` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `authentication_status` tinyint(1) NOT NULL DEFAULT 0,
-  `lifetime_points` int(11) NOT NULL DEFAULT 0
+  `lifetime_points` int(11) NOT NULL DEFAULT 0,
+  `theme` varchar(30) NOT NULL DEFAULT 'dark-roast',
+  `accent_color` char(7) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
