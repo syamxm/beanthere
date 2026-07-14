@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../dbconn.php';
 require_once __DIR__ . '/../settings.php';
 require_once __DIR__ . '/../loyalty.php';
 require_once __DIR__ . '/../csrf.php';
@@ -7,8 +8,8 @@ $isLoggedIn = isset($_SESSION['current_user']);
 $navThemeKeys = array_keys(theme_options());
 $navNextTheme = $navThemeKeys[(array_search(current_theme(), $navThemeKeys, true) + 1) % count($navThemeKeys)];
 $navNextThemeLabel = theme_options()[$navNextTheme]['label'];
-$storeStatus = store_status();
-$navPoints = $isLoggedIn ? get_balance_for_nav($_SESSION['current_user']) : null;
+$storeStatus = store_status($conn);
+$navPoints = $isLoggedIn ? get_balance_for_nav($conn, $_SESSION['current_user']) : null;
 ?>
 <?php if (!$storeStatus['open']): ?>
   <div class="bg-caramel text-espresso text-sm font-semibold text-center px-4 py-2">

@@ -40,7 +40,6 @@ if ($membershipID) {
   $stmt->close();
 }
 
-$conn->close();
 
 $pageTitle = 'My vouchers - Bean There';
 ?>

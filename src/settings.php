@@ -23,23 +23,17 @@ function set_setting(mysqli $conn, string $name, string $value): void
   $stmt->close();
 }
 
-function store_status(): array
+function store_status(mysqli $conn): array
 {
   static $status = null;
   if ($status !== null) {
     return $status;
   }
 
-  $status = ['open' => true, 'message' => ''];
-
-  $conn = @new mysqli(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'));
-  if ($conn->connect_error) {
-    return $status;
-  }
-
-  $status['open'] = get_setting($conn, 'store_open') !== '0';
-  $status['message'] = get_setting($conn, 'closed_message') ?? '';
-  $conn->close();
+  $status = [
+    'open' => get_setting($conn, 'store_open') !== '0',
+    'message' => get_setting($conn, 'closed_message') ?? '',
+  ];
 
   return $status;
 }

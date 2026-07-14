@@ -57,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$authentication_status) {
   }
 }
 
-mysqli_close($conn);
 
 $hasPhone = !empty($phone_number);
 $hasEmail = !empty($email);

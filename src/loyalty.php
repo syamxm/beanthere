@@ -47,24 +47,15 @@ function get_balance(mysqli $conn, int $userID): int
   return (int)$balance;
 }
 
-function get_balance_for_nav(string $username): ?int
+function get_balance_for_nav(mysqli $conn, string $username): ?int
 {
-  $conn = @new mysqli(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'));
-  if ($conn->connect_error) {
-    return null;
-  }
   $stmt = $conn->prepare("SELECT COALESCE(SUM(l.points), 0)
                           FROM users u LEFT JOIN loyalty_ledger l ON l.userID = u.userID
                           WHERE u.username = ?");
-  if ($stmt === false) {
-    $conn->close();
-    return null;
-  }
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->bind_result($balance);
   $found = $stmt->fetch();
   $stmt->close();
-  $conn->close();
   return $found ? (int)$balance : null;
 }
