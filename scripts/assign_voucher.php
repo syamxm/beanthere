@@ -43,28 +43,29 @@ while ($row = $membersResult->fetch_assoc()) {
 // Step 3: Assign vouchers
 $assignCount = 0;
 
+// Each monthly voucher lands once per calendar month. UNIQUE
+// (membershipID, voucherID, grant_period) enforces it; a duplicate-key error
+// just means this member already got it this month.
+$grantPeriod = date('Y-m');
+
 foreach ($members as $membershipID) {
   foreach ($validVouchers as $voucher) {
     $voucherID = $voucher['voucherID'];
     $voucherCode = $voucher['code'];
 
-    // Check if already assigned
-    $check = $conn->prepare("SELECT membershipID, voucherID FROM member_vouchers WHERE membershipID = ? AND voucherID = ?");
-    $check->bind_param("ii", $membershipID, $voucherID);
-    $check->execute();
-    $exists = $check->get_result()->num_rows > 0;
-    $check->close();
-
-    if (!$exists) {
-      // Assign the voucher
-      $assign = $conn->prepare("INSERT INTO member_vouchers (membershipID, voucherID, assigned_at) VALUES (?, ?, NOW())");
-      $assign->bind_param("ii", $membershipID, $voucherID);
-      if ($assign->execute()) {
-        $logMsg = "Assigned voucher '$voucherCode' to userID $membershipID\n";
-        file_put_contents($logPath, $logMsg, FILE_APPEND);
-        $assignCount++;
-      }
+    try {
+      $assign = $conn->prepare("INSERT INTO member_vouchers (membershipID, voucherID, assigned_at, grant_period)
+                                VALUES (?, ?, NOW(), ?)");
+      $assign->bind_param("iis", $membershipID, $voucherID, $grantPeriod);
+      $assign->execute();
       $assign->close();
+
+      file_put_contents($logPath, "Assigned voucher '$voucherCode' to membershipID $membershipID for $grantPeriod\n", FILE_APPEND);
+      $assignCount++;
+    } catch (mysqli_sql_exception $e) {
+      if ($e->getCode() != 1062) {
+        file_put_contents($logPath, "Failed to assign '$voucherCode' to membershipID $membershipID: " . $e->getMessage() . "\n", FILE_APPEND);
+      }
     }
   }
 }
