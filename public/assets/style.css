@@ -1,6 +1,45 @@
 /* Self-hosted Poppins (latin subset), plus what utility classes can't cover:
    scrollbar, selection, and the table/form components shared by admin pages. */
 
+/* Theme tokens as RGB triplets so Tailwind opacity modifiers keep working.
+   Admin pages never set data-theme, so they always get the :root defaults. */
+
+:root {                              /* Dark Roast */
+  --c-espresso: 22 16 11;
+  --c-roast: 36 26 18;
+  --c-bean: 58 42 26;
+  --c-crema: 237 228 211;
+  --c-foam: 156 139 116;
+  --c-caramel: 196 155 99;
+}
+
+html[data-theme="strawberry-latte"] {
+  --c-espresso: 43 26 31;
+  --c-roast: 58 34 41;
+  --c-bean: 82 48 58;
+  --c-crema: 245 230 234;
+  --c-foam: 196 154 166;
+  --c-caramel: 232 116 154;
+}
+
+html[data-theme="morning-brew"] {
+  --c-espresso: 245 238 222;
+  --c-roast: 255 255 255;
+  --c-bean: 217 201 173;
+  --c-crema: 43 29 16;
+  --c-foam: 113 98 76;
+  --c-caramel: 143 90 31;
+}
+
+html[data-theme="matcha"] {
+  --c-espresso: 20 32 26;
+  --c-roast: 30 47 37;
+  --c-bean: 50 73 60;
+  --c-crema: 233 240 228;
+  --c-foam: 147 168 148;
+  --c-caramel: 158 201 127;
+}
+
 @font-face {
   font-family: 'Poppins';
   font-style: normal;
@@ -45,7 +84,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9c8b74;
+  background: rgb(var(--c-foam));
   animation: typing-bounce 1s infinite ease-in-out;
 }
 
@@ -77,21 +116,21 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #16100b;
+  background: rgb(var(--c-espresso));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3a2a1a;
+  background: rgb(var(--c-bean));
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c49b63;
+  background: rgb(var(--c-caramel));
 }
 
 ::selection {
-  background: #c49b63;
-  color: #16100b;
+  background: rgb(var(--c-caramel));
+  color: rgb(var(--c-espresso));
 }
 
 /* Shared admin components (Tailwind CDN has no @apply, and these repeat
