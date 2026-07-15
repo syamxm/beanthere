@@ -195,6 +195,32 @@ its own line on the tracking and admin pages — never folded into a drink price
   order earned (matched by `checkoutID` in the ledger, reversed at most once).
   The voucher is **not** refunded — once spent on an order it is spent. This is
   stated on the cancel confirmation.
+- **Ready ping** — the customer tracking page polls `order_updates.php` (user
+  scoped, same 5-second cadence as the board) and shows a toast plus a flashing
+  tab title when a group reaches *Ready for Pickup* or *Out for Delivery*.
+- **Reorder** — every past checkout group has a Reorder button that re-inserts
+  its rows into the cart at **current** menu prices, re-checking stock and item
+  existence. Removed items and price changes are flagged in the flash message,
+  not silently absorbed.
+
+## Opening hours
+
+Per-day opening hours live in the `settings` table (`hours_<day>_open/close`),
+edited from the admin dashboard (blank = closed that day). `store_status()`
+consults today's schedule; the old open/closed checkbox still exists as a
+**manual override** — when the override toggle is on (or no schedule has been
+saved yet), the manual toggle wins in both directions. Outside hours the
+storefront behaves exactly like store-closed (banner + ordering blocked), and
+when open the banner shows today's hours.
+
+## Analytics
+
+`admin_report.php` has a date-range picker (defaults to the last 30 days):
+revenue by day and by week, top items by revenue and by quantity, plus the
+original all-time charts. Revenue counts only paid groups — `Awaiting Payment`,
+`Payment Failed` and `Cancelled` are excluded (`src/report_range.php`).
+**Export CSV** streams the range's order rows via `fputcsv`
+(`export_orders_csv.php`, admin-only), one row per drink with the group ref.
 
 ## Data integrity
 
