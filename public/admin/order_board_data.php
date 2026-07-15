@@ -19,15 +19,16 @@ $liveStatuses = array_values(array_unique(array_merge(
   array_slice(DELIVERY_FLOW, 0, -1)
 )));
 
+$placeholders = implode(',', array_fill(0, count($liveStatuses), '?'));
+// nosemgrep: php.lang.security.injection.tainted-sql-string.tainted-sql-string -- $placeholders is only "?" marks; values bound below
 $sql = "SELECT o.checkoutID, o.name, o.qty, o.drinkType, o.milkType, o.syrups, o.toppings, o.sugarLevel,
                o.delivery, o.orderStatus, o.orderTime, u.username
         FROM orders o
         JOIN users u ON o.userID = u.userID
-        WHERE o.checkoutID IS NOT NULL AND o.orderStatus <> ?
+        WHERE o.checkoutID IS NOT NULL AND o.orderStatus IN ($placeholders)
         ORDER BY o.orderTime ASC";
-$cancelled = ORDER_CANCELLED;
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $cancelled);
+$stmt->bind_param(str_repeat('s', count($liveStatuses)), ...$liveStatuses);
 $stmt->execute();
 $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
