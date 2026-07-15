@@ -3,6 +3,7 @@ $adminLinks = [
   'admin_home.php' => 'Dashboard',
   'view_items.php' => 'Items',
   'adminOrderManagement.php' => 'Orders',
+  'order_board.php' => 'Board',
   'manage_voucher.php' => 'Vouchers',
   'admin_membership_manage.php' => 'Memberships',
   'view_users.php' => 'Users',
