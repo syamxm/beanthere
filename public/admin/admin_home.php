@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../src/csrf.php';
 require_once __DIR__ . '/../../src/settings.php';
 require_once __DIR__ . '/../../src/loyalty.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form'] ?? '') === 'store_status') {
   csrf_verify();
   $storeOpen = isset($_POST['store_open']) ? '1' : '0';
   $closedMessage = trim($_POST['closed_message'] ?? '');
@@ -18,14 +18,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $closedMessage = 'We are closed at the moment — see you soon for your next cup!';
   }
   set_setting($conn, 'store_open', $storeOpen);
+  set_setting($conn, 'hours_override', isset($_POST['hours_override']) ? '1' : '0');
   set_setting($conn, 'closed_message', mb_substr($closedMessage, 0, 255));
-  $_SESSION['message'] = $storeOpen === '1' ? 'Store is now open.' : 'Store is now closed.';
+  $_SESSION['message'] = 'Store status saved.';
+  header('Location: admin_home.php');
+  exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form'] ?? '') === 'opening_hours') {
+  csrf_verify();
+  foreach (HOURS_DAYS as $day) {
+    $open = trim($_POST["open_$day"] ?? '');
+    $close = trim($_POST["close_$day"] ?? '');
+    $validPair = preg_match('/^\d{2}:\d{2}$/', $open) && preg_match('/^\d{2}:\d{2}$/', $close) && $open < $close;
+    if (!$validPair) {
+      $open = '';
+      $close = '';
+    }
+    set_setting($conn, "hours_{$day}_open", $open);
+    set_setting($conn, "hours_{$day}_close", $close);
+  }
+  set_setting($conn, 'hours_configured', '1');
+  $_SESSION['message'] = 'Opening hours saved. Days with missing or invalid times are treated as closed.';
   header('Location: admin_home.php');
   exit();
 }
 
 $storeOpen = get_setting($conn, 'store_open') !== '0';
+$hoursOverride = get_setting($conn, 'hours_override') === '1';
 $closedMessage = get_setting($conn, 'closed_message') ?? '';
+$schedule = store_schedule($conn);
+$storeStatus = store_status($conn);
 
 $result = $conn->query("SELECT
     COALESCE(SUM(CASE WHEN points > 0 THEN points END), 0) AS issued,
@@ -90,18 +113,48 @@ $sections = [
 
     <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
       <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">STORE STATUS</h2>
+      <p class="text-sm mb-4">
+        Right now the store is
+        <span class="font-semibold <?= $storeStatus['open'] ? 'text-green-300' : 'text-red-300' ?>"><?= $storeStatus['open'] ? 'open' : 'closed' ?></span>
+        <span class="text-foam">(<?= $hoursOverride ? 'manual override' : 'following the schedule' ?>)</span>
+      </p>
       <form method="POST" class="flex flex-col gap-4">
         <?= csrf_field() ?>
+        <input type="hidden" name="form" value="store_status">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="hours_override" value="1" <?= $hoursOverride ? 'checked' : '' ?> class="accent-[#c49b63] w-4 h-4">
+          <span>Manual override — ignore the schedule and use the toggle below</span>
+        </label>
         <label class="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" name="store_open" value="1" <?= $storeOpen ? 'checked' : '' ?> class="accent-[#c49b63] w-4 h-4">
           <span>Store is open — customers can order</span>
         </label>
         <div>
-          <label for="closed_message" class="block text-sm text-foam mb-1.5">Message shown when closed</label>
+          <label for="closed_message" class="block text-sm text-foam mb-1.5">Message shown when closed manually</label>
           <textarea name="closed_message" id="closed_message" rows="2" maxlength="255"
             class="w-full bg-espresso border border-bean rounded-lg px-3 py-2.5 text-crema focus:outline-none focus:border-caramel"><?= htmlspecialchars($closedMessage) ?></textarea>
         </div>
         <button type="submit" class="btn-caramel self-start">Save store status</button>
+      </form>
+    </div>
+
+    <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
+      <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">OPENING HOURS</h2>
+      <p class="text-foam text-sm mb-4">Leave both fields blank to mark a day closed. The schedule controls ordering unless manual override is on.</p>
+      <form method="POST" class="flex flex-col gap-3">
+        <?= csrf_field() ?>
+        <input type="hidden" name="form" value="opening_hours">
+        <?php foreach (HOURS_DAYS as $day): ?>
+          <div class="flex items-center gap-3">
+            <span class="w-28 text-sm"><?= htmlspecialchars(HOURS_DAY_LABELS[$day]) ?></span>
+            <input type="time" name="open_<?= $day ?>" value="<?= htmlspecialchars($schedule[$day]['open']) ?>"
+              class="bg-espresso border border-bean rounded-lg px-3 py-1.5 text-crema focus:outline-none focus:border-caramel">
+            <span class="text-foam text-sm">to</span>
+            <input type="time" name="close_<?= $day ?>" value="<?= htmlspecialchars($schedule[$day]['close']) ?>"
+              class="bg-espresso border border-bean rounded-lg px-3 py-1.5 text-crema focus:outline-none focus:border-caramel">
+          </div>
+        <?php endforeach; ?>
+        <button type="submit" class="btn-caramel self-start mt-2">Save opening hours</button>
       </form>
     </div>
 
