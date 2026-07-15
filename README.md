@@ -161,7 +161,11 @@ Scheduled on the host crontab, calling into the app container:
 0 3 * * * docker exec beanthere-app php /var/www/html/scripts/assign_voucher.php >/dev/null 2>&1
 ```
 
-`update_order_status.php` advances order status over time; `assign_voucher.php`
+`update_order_status.php` advances order status over time **for auto orders
+only** — once an admin changes a checkout group's status (list view or barista
+board), that group's `statusSource` flips to `manual` and the cron leaves it
+alone, so a live barista and the unattended demo clock never fight. It also
+skips `Cancelled` groups. `assign_voucher.php`
 grants active members the vouchers marked `type = 'monthly'` (vouchers marked
 `type = 'reward'`, e.g. `REWARD5`/`REWARD15`/`REWARD25`, are only obtainable by
 spending loyalty points). A monthly voucher is granted **once per calendar
@@ -170,6 +174,27 @@ granted for, and a unique key makes a second grant in the same month impossible.
 Points redemptions leave `grant_period` NULL, so the same reward voucher can be
 redeemed as often as a member can pay for it. Both scripts refuse to run over
 HTTP and log to `logs/`.
+
+## Orders and the barista board
+
+A checkout writes one row per drink, all sharing a random `checkoutID`, so an
+order is a group, not a loose pile of rows. The delivery fee is stored once per
+group in `orders.delivery_fee` (same value on each row, read once) and shown as
+its own line on the tracking and admin pages — never folded into a drink price.
+
+- **Order management** (`adminOrderManagement.php`) shows one card per checkout
+  with the legal next-status button and a Cancel button. Transitions are
+  whitelisted server-side in `src/order_status.php` (an admin may advance one
+  step or cancel; nothing else), and apply to the whole group.
+- **Barista board** (`order_board.php`) is a counter-tablet view: columns per
+  live status, a card per order with drinks and customisations, polling
+  `order_board_data.php` every 5 seconds (admin-only, `Cache-Control: no-store`).
+  Advancing a stale card is a friendly no-op — the transition is re-checked
+  server-side, so two tabs can't double-advance.
+- **Cancelling** restocks every drink and reverses the exact loyalty points the
+  order earned (matched by `checkoutID` in the ledger, reversed at most once).
+  The voucher is **not** refunded — once spent on an order it is spent. This is
+  stated on the cancel confirmation.
 
 ## Data integrity
 
