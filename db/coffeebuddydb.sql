@@ -181,7 +181,9 @@ INSERT INTO `settings` (`name`, `value`) VALUES
 
 CREATE TABLE `orders` (
   `orderID` int(11) NOT NULL,
+  `checkoutID` char(12) DEFAULT NULL,
   `userID` int(11) NOT NULL,
+  `itemID` int(11) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `drinkType` varchar(50) DEFAULT NULL,
   `roastLevel` varchar(50) DEFAULT NULL,
@@ -192,8 +194,10 @@ CREATE TABLE `orders` (
   `syrups` text DEFAULT NULL,
   `delivery` varchar(50) DEFAULT NULL,
   `total` decimal(8,2) DEFAULT NULL,
+  `delivery_fee` decimal(4,2) NOT NULL DEFAULT 0.00,
   `qty` int(11) DEFAULT NULL,
   `orderStatus` varchar(50) DEFAULT 'Pending',
+  `statusSource` enum('auto','manual') NOT NULL DEFAULT 'auto',
   `orderTime` datetime DEFAULT NULL,
   `lastStatusUpdate` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -343,7 +347,8 @@ ALTER TABLE `menu_items`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`orderID`),
-  ADD KEY `userID` (`userID`);
+  ADD KEY `userID` (`userID`),
+  ADD KEY `checkoutID` (`checkoutID`);
 
 --
 -- Indexes for table `users`

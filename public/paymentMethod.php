@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
 
   $deliveryMethod = ($_POST['delivery_method'] ?? '') === 'Delivery' ? 'Delivery' : 'Pickup';
   $deliveryCharge = $deliveryMethod === 'Delivery' ? 3.00 : 0.00;
+  $checkoutID = bin2hex(random_bytes(6));
 
   $cartRows = $result->fetch_all(MYSQLI_ASSOC);
   $stmt->close();
@@ -91,25 +92,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
   }
 
   $subtotal = 0;
-  $firstRow = true;
+  // The delivery fee is stored once per checkout on the delivery-method line,
+  // never folded into an item total, so item prices stay clean.
+  $deliveryFeeForRow = $deliveryCharge;
   foreach ($cartRows as $row) {
     $initialStatus = "Order Received";
-
     $rowTotal = round($row['total'] * (1 - $discountPercent / 100), 2);
     $subtotal += $rowTotal;
-    if ($firstRow) {
-      $rowTotal = round($rowTotal + $deliveryCharge, 2);
-      $firstRow = false;
-    }
 
     $insert = $conn->prepare("INSERT INTO orders (
-      userID, name, drinkType, roastLevel, caffeineLevel, milkType,
-      sugarLevel, toppings, syrups, delivery, total, qty, orderStatus, orderTime, lastStatusUpdate
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+      checkoutID, userID, itemID, name, drinkType, roastLevel, caffeineLevel, milkType,
+      sugarLevel, toppings, syrups, delivery, total, delivery_fee, qty, orderStatus, orderTime, lastStatusUpdate
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
 
     $insert->bind_param(
-      "isssssssssdis",
+      "siisssssssssddis",
+      $checkoutID,
       $userID,
+      $row['itemID'],
       $row['name'],
       $row['drinkType'],
       $row['roastLevel'],
@@ -120,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
       $row['syrups'],
       $deliveryMethod,
       $rowTotal,
+      $deliveryFeeForRow,
       $row['qty'],
       $initialStatus
     );
@@ -168,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['paymentMethod'])) {
     $tier = get_tier((int)$lifetimePoints);
     $earnedPoints = (int)floor($subtotal * $tier['multiplier']);
     if ($earnedPoints > 0) {
-      award_points($conn, $userID, $earnedPoints, 'Order');
+      award_points($conn, $userID, $earnedPoints, "Order $checkoutID");
     }
   }
 
