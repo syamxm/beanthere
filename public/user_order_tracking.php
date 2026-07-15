@@ -99,7 +99,8 @@ $pageTitle = 'Your orders - Bean There';
                 <?= htmlspecialchars($group['delivery']) ?> ·
                 ordered <?= htmlspecialchars(date("j M Y, g:ia", strtotime($group['time']))) ?>
               </p>
-              <span class="text-sm font-semibold px-3 py-1 rounded-full <?= $badge ?>"><?= htmlspecialchars($group['status']) ?></span>
+              <span class="text-sm font-semibold px-3 py-1 rounded-full <?= $badge ?>"
+                <?= $group['checkoutID'] !== null ? 'data-group="' . htmlspecialchars($group['checkoutID']) . '"' : '' ?>><?= htmlspecialchars($group['status']) ?></span>
             </div>
             <div class="flex flex-col gap-1.5 text-sm">
               <?php foreach ($group['items'] as $item): ?>
@@ -120,9 +121,18 @@ $pageTitle = 'Your orders - Bean There';
               </div>
             </div>
             <?php if ($showReceipt): ?>
-              <a href="receipt.php?ref=<?= urlencode($group['checkoutID']) ?>" class="inline-block mt-3 text-caramel hover:text-crema text-sm">
-                <i class="fa-solid fa-receipt mr-1"></i> View receipt
-              </a>
+              <div class="flex items-center gap-4 mt-3">
+                <a href="receipt.php?ref=<?= urlencode($group['checkoutID']) ?>" class="text-caramel hover:text-crema text-sm">
+                  <i class="fa-solid fa-receipt mr-1"></i> View receipt
+                </a>
+                <form method="POST" action="reorder.php">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="checkoutID" value="<?= htmlspecialchars($group['checkoutID']) ?>">
+                  <button type="submit" class="text-caramel hover:text-crema text-sm">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reorder
+                  </button>
+                </form>
+              </div>
             <?php endif; ?>
           </div>
         <?php endforeach; ?>
@@ -131,6 +141,63 @@ $pageTitle = 'Your orders - Bean There';
   </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
+
+  <div id="readyToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-caramel text-espresso font-semibold px-6 py-3 rounded-full shadow-lg z-50">
+  </div>
+
+  <script>
+    const statuses = {};
+    document.querySelectorAll('[data-group]').forEach(el => {
+      statuses[el.dataset.group] = el.textContent.trim();
+    });
+
+    const baseTitle = document.title;
+    let flashTimer = null;
+
+    function flashTitle(message) {
+      if (flashTimer) clearInterval(flashTimer);
+      let on = false;
+      flashTimer = setInterval(() => {
+        document.title = on ? baseTitle : message;
+        on = !on;
+      }, 1000);
+      setTimeout(() => {
+        clearInterval(flashTimer);
+        flashTimer = null;
+        document.title = baseTitle;
+      }, 15000);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('readyToast');
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 8000);
+    }
+
+    async function pollStatuses() {
+      try {
+        const res = await fetch('order_updates.php', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return;
+        const data = await res.json();
+        for (const [group, status] of Object.entries(data.statuses)) {
+          const badge = document.querySelector(`[data-group="${group}"]`);
+          if (!badge || statuses[group] === status) continue;
+          statuses[group] = status;
+          badge.textContent = status;
+          if (status === 'Ready for Pickup' || status === 'Out for Delivery') {
+            const message = status === 'Ready for Pickup' ? 'Your order is ready for pickup!' : 'Your order is out for delivery!';
+            showToast(message);
+            flashTitle('☕ ' + message);
+          }
+        }
+      } catch (e) {
+        // Network hiccup — next poll retries.
+      }
+    }
+
+    setInterval(pollStatuses, 5000);
+  </script>
 </body>
 
 </html>
