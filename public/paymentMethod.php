@@ -222,18 +222,18 @@ $pageTitle = 'Review order - Bean There';
         <?php foreach ($cartRows as $row):
           $lineDiscounted = round($row['total'] * (1 - $discountPercent / 100), 2); ?>
           <div class="flex justify-between">
-            <span><?= htmlspecialchars($row['name']) ?> <span class="text-foam">×<?= (int)$row['qty'] ?></span></span>
-            <span class="text-foam">RM<?= number_format($lineDiscounted, 2) ?></span>
+            <span><?= htmlspecialchars($row['name']) ?> <span class="text-foam">×<?= htmlspecialchars((string)(int)$row['qty']) ?></span></span>
+            <span class="text-foam">RM<?= htmlspecialchars(number_format($lineDiscounted, 2)) ?></span>
           </div>
         <?php endforeach; ?>
       </div>
 
       <div class="border-t border-bean pt-4 flex flex-col gap-1.5 text-sm">
         <?php if ($discountPercent > 0): ?>
-          <div class="flex justify-between text-foam"><span>Voucher discount</span><span><?= number_format($discountPercent, 0) ?>% applied</span></div>
+          <div class="flex justify-between text-foam"><span>Voucher discount</span><span><?= htmlspecialchars(number_format($discountPercent, 0)) ?>% applied</span></div>
         <?php endif; ?>
-        <div class="flex justify-between text-foam"><span><?= htmlspecialchars($deliveryMethod) ?></span><span>RM<?= number_format($deliveryCharge, 2) ?></span></div>
-        <div class="flex justify-between font-semibold text-base mt-1"><span>Total</span><span class="text-caramel">RM<?= number_format($orderTotal, 2) ?></span></div>
+        <div class="flex justify-between text-foam"><span><?= htmlspecialchars($deliveryMethod) ?></span><span>RM<?= htmlspecialchars(number_format($deliveryCharge, 2)) ?></span></div>
+        <div class="flex justify-between font-semibold text-base mt-1"><span>Total</span><span class="text-caramel">RM<?= htmlspecialchars(number_format($orderTotal, 2)) ?></span></div>
       </div>
 
       <form method="post" action="paymentMethod.php" class="mt-6">
@@ -241,13 +241,13 @@ $pageTitle = 'Review order - Bean There';
         <input type="hidden" name="proceed" value="1">
         <input type="hidden" name="delivery_method" value="<?= htmlspecialchars($deliveryMethod) ?>">
         <?php if ($postedVoucherID !== null): ?>
-          <input type="hidden" name="memberVoucherID" value="<?= (int)$postedVoucherID ?>">
+          <input type="hidden" name="memberVoucherID" value="<?= htmlspecialchars((string)(int)$postedVoucherID) ?>">
         <?php endif; ?>
         <?php foreach ($selectedIDs as $id): ?>
-          <input type="hidden" name="selected_ids[]" value="<?= (int)$id ?>">
+          <input type="hidden" name="selected_ids[]" value="<?= htmlspecialchars((string)(int)$id) ?>">
         <?php endforeach; ?>
         <button type="submit" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition">
-          Continue to payment · RM<?= number_format($orderTotal, 2) ?>
+          Continue to payment · RM<?= htmlspecialchars(number_format($orderTotal, 2)) ?>
         </button>
       </form>
     </div>

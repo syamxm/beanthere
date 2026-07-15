@@ -159,7 +159,7 @@ $conn->close();
           'insufficient' => ['bad', '✕', 'Insufficient funds', 'Returning you to the store…'],
         ][$result] ?? ['bad', '✕', 'Payment failed', 'Returning you to the store…'];
       ?>
-        <div class="outcome <?= $outcome[0] ?>"><span class="badge"><?= $outcome[1] ?></span></div>
+        <div class="outcome <?= htmlspecialchars($outcome[0]) ?>"><span class="badge"><?= htmlspecialchars($outcome[1]) ?></span></div>
         <p class="center" style="font-weight:600;font-size:17px;margin-bottom:4px;"><?= htmlspecialchars($outcome[2]) ?></p>
         <p class="center hint" style="margin-top:0;"><?= htmlspecialchars($outcome[3]) ?></p>
         <form id="callbackForm" method="post" action="../payment_callback.php">
