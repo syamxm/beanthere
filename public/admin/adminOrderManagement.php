@@ -18,10 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkoutID'], $_POST[
   exit();
 }
 
+// Unpaid checkouts (Awaiting Payment / Payment Failed) belong to the customer
+// and gateway flow, not the barista, so they are hidden here.
 $sql = "SELECT o.orderID, o.checkoutID, o.name, o.qty, o.total, o.delivery_fee, o.delivery,
                o.orderStatus, o.lastStatusUpdate, o.orderTime, u.username
         FROM orders o
         JOIN users u ON o.userID = u.userID
+        WHERE o.orderStatus NOT IN ('Awaiting Payment', 'Payment Failed')
         ORDER BY o.orderTime DESC, o.checkoutID";
 $result = $conn->query($sql);
 

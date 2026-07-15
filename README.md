@@ -321,13 +321,46 @@ CREATE TABLE IF NOT EXISTS login_attempts (
 
 Not a real e-commerce backend — nothing here charges money or sends messages.
 
-- **Payment** (`paymentMethod.php`) — card/e-wallet/bank fields are collected
-  and validated client-side (expiry, non-empty) but never sent to a real
-  payment gateway. Submitting places the order immediately. Labeled "Demo" in
-  the UI; don't enter a real card number.
+- **Payment** — checkout hands off to a simulated payment provider, "SyamPay"
+  (`public/gateway/`), which is deliberately styled to look like an external
+  service. No real money moves; every page says so. See
+  [Payment flow](#payment-flow) for how it works and the test cards.
 - **Account verification** (`user_verify.php`) — no OTP or email is actually
   sent. Choosing "verify via phone/email" marks the account verified
   instantly. Labeled "Demo" in the UI.
+
+## Payment flow
+
+Checkout is a two-phase, gateway-mediated flow so the demo has real failure
+paths, not just a success alert.
+
+1. **Review** (`paymentMethod.php`) reserves stock and the voucher inside one
+   transaction and writes the order as `Awaiting Payment` — no points yet — then
+   redirects to the gateway with a signed reference: `HMAC(checkoutID|amount)`
+   using `PAYMENT_SECRET`. Raw order IDs are never trusted from the URL.
+2. **SyamPay** (`public/gateway/pay.php`) is a self-contained pretend PSP with
+   its own look. Card payments run a Luhn check and require a future expiry;
+   payments over RM50 show a fake 3-D Secure step. E-wallet and bank tabs are
+   one-click success/fail simulators. Test cards:
+   - `4242 4242 4242 4242` — success
+   - `4000 0000 0000 0002` — declined
+   - `4000 0000 0000 9995` — insufficient funds
+3. **Callback** (`payment_callback.php`) verifies the HMAC and that the signed
+   amount still matches the order, then acts **idempotently** (replaying it is a
+   no-op — points are never doubled). On success the group flips to
+   `Order Received` and points are awarded. On decline or a 15-minute abandon
+   (swept by `payment_expire_stale()` on the tracking page and by the cron) the
+   group becomes `Payment Failed`, stock is restored and the voucher released.
+   The listed test-card numbers are a feature for demo visitors, not a secret.
+
+   **Decision:** points/stock/voucher effects live only in the callback (points)
+   or are reserved at checkout and released on failure (stock, voucher). A
+   failed payment does **not** repopulate the cart — the customer reorders from
+   the menu.
+
+4. **Receipt** (`receipt.php?ref=…`, owner-only) shows items, fee, discount,
+   points earned, payment method + last 4 + gateway ref, with a print
+   stylesheet and a clearly-labelled email preview (nothing is sent).
 
 ## Recommendation chatbot
 
