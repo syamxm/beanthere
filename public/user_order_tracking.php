@@ -7,6 +7,13 @@ if (!isset($_SESSION['current_user'])) {
 }
 
 require_once __DIR__ . '/../src/dbconn.php';
+require_once __DIR__ . '/../src/payment.php';
+
+// Sweep any checkout abandoned at the gateway for 15+ minutes before rendering.
+payment_expire_stale($conn);
+
+$flashMessage = $_SESSION['message'] ?? '';
+unset($_SESSION['message'], $_SESSION['success']);
 
 $username = $_SESSION['current_user'];
 $stmt = $conn->prepare("SELECT userID FROM users WHERE username = ?");
@@ -27,6 +34,7 @@ while ($row = $result->fetch_assoc()) {
   $key = $row['checkoutID'] ?? ('legacy-' . $row['orderID']);
   if (!isset($groups[$key])) {
     $groups[$key] = [
+      'checkoutID' => $row['checkoutID'],
       'status' => $row['orderStatus'],
       'delivery' => $row['delivery'],
       'time' => $row['orderTime'],
@@ -56,6 +64,10 @@ $pageTitle = 'Your orders - Bean There';
     <h1 class="text-3xl font-bold mb-2">Your orders</h1>
     <p class="text-foam text-sm mb-8">Status updates automatically as we work on your order.</p>
 
+    <?php if (!empty($flashMessage)): ?>
+      <p class="text-sm mb-6 text-red-400"><?= htmlspecialchars($flashMessage) ?></p>
+    <?php endif; ?>
+
     <?php if (empty($groups)): ?>
       <div class="bg-roast border border-bean rounded-2xl p-10 text-center">
         <i class="fa-solid fa-receipt text-caramel text-4xl mb-4"></i>
@@ -67,8 +79,10 @@ $pageTitle = 'Your orders - Bean There';
       <div class="flex flex-col gap-4">
         <?php foreach ($groups as $group):
           $statusRaw = strtolower($group['status']);
-          if ($statusRaw === 'cancelled') {
+          if (in_array($statusRaw, ['cancelled', 'payment failed'])) {
             $badge = 'bg-red-400/20 text-red-300';
+          } elseif ($statusRaw === 'awaiting payment') {
+            $badge = 'bg-yellow-400/20 text-yellow-200';
           } elseif (in_array($statusRaw, ['out for delivery', 'ready for pickup'])) {
             $badge = 'bg-blue-400/20 text-blue-300';
           } elseif (in_array($statusRaw, ['delivered', 'done pickup'])) {
@@ -77,6 +91,7 @@ $pageTitle = 'Your orders - Bean There';
             $badge = 'bg-caramel/20 text-caramel';
           }
           $orderTotal = $group['itemsTotal'] + $group['deliveryFee'];
+          $showReceipt = !in_array($statusRaw, ['awaiting payment', 'payment failed'], true) && $group['checkoutID'] !== null;
         ?>
           <div class="bg-roast border border-bean rounded-2xl p-5">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -104,6 +119,11 @@ $pageTitle = 'Your orders - Bean There';
                 <span class="text-caramel">RM<?= number_format($orderTotal, 2) ?></span>
               </div>
             </div>
+            <?php if ($showReceipt): ?>
+              <a href="receipt.php?ref=<?= urlencode($group['checkoutID']) ?>" class="inline-block mt-3 text-caramel hover:text-crema text-sm">
+                <i class="fa-solid fa-receipt mr-1"></i> View receipt
+              </a>
+            <?php endif; ?>
           </div>
         <?php endforeach; ?>
       </div>
