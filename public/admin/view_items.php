@@ -46,59 +46,57 @@ $pageTitle = 'Items - Bean There Admin';
       <p class="flash-message"><?= htmlspecialchars($flash) ?></p>
     <?php endif; ?>
 
-    <p class="text-foam text-sm mb-4"><i class="fa-solid fa-up-down text-caramel mr-1"></i> Drag rows to change the menu order shown to customers. <span id="reorderStatus" class="text-caramel"></span></p>
+    <p class="text-foam text-sm mb-4"><i class="fa-solid fa-up-down text-caramel mr-1"></i> Drag cards to change the menu order shown to customers. <span id="reorderStatus" class="text-caramel"></span></p>
 
     <?php if (empty($items)): ?>
       <p class="text-foam">No menu items found.</p>
     <?php else: ?>
-      <div class="overflow-x-auto">
-        <table class="admin-table">
-          <tr>
-            <th></th>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Old price</th>
-            <th>Category</th>
-            <th>Roast</th>
-            <th>Caffeine</th>
-            <th>Flavours</th>
-            <th>Type</th>
-            <th>Stock</th>
-            <th colspan="2">Actions</th>
-          </tr>
-          <?php foreach ($items as $row): ?>
-            <tr draggable="true" data-id="<?= (int)$row['id'] ?>" class="item-row">
-              <td class="cursor-grab text-foam"><i class="fa-solid fa-grip-vertical"></i></td>
-              <td><?= (int)$row['id'] ?></td>
-              <td class="whitespace-nowrap"><?= htmlspecialchars($row['name']) ?></td>
-              <td class="max-w-56"><?= htmlspecialchars($row['description'] ?? '') ?></td>
-              <td>RM<?= number_format($row['price'], 2) ?></td>
-              <td><?= $row['old_price'] ? 'RM' . number_format($row['old_price'], 2) : '—' ?></td>
-              <td><?= htmlspecialchars($row['category']) ?></td>
-              <td><?= htmlspecialchars($row['roast_level'] ?? '—') ?></td>
-              <td><?= htmlspecialchars($row['caffeine_level'] ?? '—') ?></td>
-              <td class="max-w-40"><?= htmlspecialchars(json_list($row['flavour_profile'])) ?></td>
-              <td><?= htmlspecialchars($row['drink_type'] ?? '—') ?></td>
-              <td><?= (int)$row['stock'] ?></td>
-              <td><a href="edit_item.php?id=<?= (int)$row['id'] ?>" class="btn-outline">Edit</a></td>
-              <td>
-                <form method="POST" action="delete_item.php" onsubmit="return confirm('Are you sure you want to delete this item?');">
-                  <?= csrf_field() ?>
-                  <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
-                  <button type="submit" class="btn-danger">Delete</button>
-                </form>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </table>
+      <div id="itemList" class="flex flex-col gap-3">
+        <?php foreach ($items as $row):
+          $details = array_filter([
+            $row['roast_level'] ? 'Roast: ' . $row['roast_level'] : null,
+            $row['caffeine_level'] ? 'Caffeine: ' . $row['caffeine_level'] : null,
+            $row['drink_type'] ? 'Type: ' . $row['drink_type'] : null,
+            json_list($row['flavour_profile']) !== '' ? 'Flavours: ' . json_list($row['flavour_profile']) : null,
+          ]);
+        ?>
+          <div draggable="true" data-id="<?= (int)$row['id'] ?>" class="item-row bg-roast border border-bean rounded-2xl p-4 flex flex-wrap items-start gap-4">
+            <span class="cursor-grab text-foam pt-1"><i class="fa-solid fa-grip-vertical"></i></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span class="font-semibold"><?= htmlspecialchars($row['name']) ?></span>
+                <span class="text-foam text-xs">#<?= (int)$row['id'] ?> · <?= htmlspecialchars($row['category']) ?></span>
+                <span class="text-caramel font-semibold">RM<?= number_format($row['price'], 2) ?></span>
+                <?php if ($row['old_price']): ?>
+                  <span class="text-foam text-sm line-through">RM<?= number_format($row['old_price'], 2) ?></span>
+                <?php endif; ?>
+                <span class="text-xs px-2 py-0.5 rounded-full <?= (int)$row['stock'] > 0 ? 'bg-caramel/20 text-caramel' : 'bg-red-400/20 text-red-300' ?>">
+                  Stock: <?= (int)$row['stock'] ?>
+                </span>
+              </div>
+              <?php if ($row['description']): ?>
+                <p class="text-foam text-sm mt-1"><?= htmlspecialchars($row['description']) ?></p>
+              <?php endif; ?>
+              <?php if ($details): ?>
+                <p class="text-foam text-xs mt-1"><?= htmlspecialchars(implode(' · ', $details)) ?></p>
+              <?php endif; ?>
+            </div>
+            <div class="flex items-center gap-2 ml-auto">
+              <a href="edit_item.php?id=<?= (int)$row['id'] ?>" class="btn-outline">Edit</a>
+              <form method="POST" action="delete_item.php" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
+                <button type="submit" class="btn-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+        <?php endforeach; ?>
       </div>
     <?php endif; ?>
   </main>
 
   <script>
-    const rows = document.querySelectorAll('tr.item-row');
+    const rows = document.querySelectorAll('.item-row');
     const statusEl = document.getElementById('reorderStatus');
     let dragged = null;
 
@@ -127,7 +125,7 @@ $pageTitle = 'Items - Bean There Admin';
     function saveOrder() {
       const data = new FormData();
       data.append('csrf_token', <?= json_encode(csrf_token()) ?>);
-      document.querySelectorAll('tr.item-row').forEach(row => data.append('order[]', row.dataset.id));
+      document.querySelectorAll('.item-row').forEach(row => data.append('order[]', row.dataset.id));
       statusEl.textContent = 'Saving...';
       fetch('reorder_items.php', { method: 'POST', body: data })
         .then(res => res.ok ? res.json() : Promise.reject())
