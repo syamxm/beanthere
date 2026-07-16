@@ -32,6 +32,7 @@ services:
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASS}
+      TZ: Asia/Kuala_Lumpur
     volumes:
       - dbdata:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d:ro
