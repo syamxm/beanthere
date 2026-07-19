@@ -15,7 +15,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <nav class="sticky top-0 z-50 bg-espresso/95 backdrop-blur border-b border-bean">
   <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
     <a href="admin_home.php" class="text-lg font-bold tracking-[0.25em] text-caramel">BEANTHERE <span class="text-foam text-xs font-normal tracking-normal ml-1">ADMIN</span></a>
-    <button id="adminNavToggle" class="lg:hidden text-crema text-2xl" aria-label="Toggle menu">
+    <button id="adminNavToggle" class="lg:hidden text-crema text-2xl w-11 h-11 -mr-2" aria-label="Toggle menu" aria-expanded="false" aria-controls="adminNavLinks">
       <i class="fa-solid fa-bars"></i>
     </button>
     <div id="adminNavLinks" class="hidden lg:flex absolute lg:static top-full left-0 w-full lg:w-auto
@@ -30,7 +30,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 </nav>
 <script>
   document.getElementById('adminNavToggle').addEventListener('click', function () {
-    document.getElementById('adminNavLinks').classList.toggle('hidden');
-    document.getElementById('adminNavLinks').classList.toggle('flex');
+    var links = document.getElementById('adminNavLinks');
+    links.classList.toggle('hidden');
+    links.classList.toggle('flex');
+    this.setAttribute('aria-expanded', String(!links.classList.contains('hidden')));
   });
 </script>
