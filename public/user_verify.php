@@ -73,7 +73,7 @@ $pageTitle = 'Verify account - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow flex items-center justify-center px-4 py-16">
+  <main id="main" class="grow flex items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
       <h1 class="text-2xl font-bold mb-2">Verify your account</h1>
       <p class="text-foam text-sm mb-2">Verified accounts can apply for membership and earn vouchers.</p>

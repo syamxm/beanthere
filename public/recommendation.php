@@ -24,11 +24,11 @@ $pageTitle = 'Recommendation - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-3xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">Ask our barista</h1>
     <p class="text-foam text-sm mb-8">Tell me what you feel like and I'll pick something off the menu.</p>
 
-    <div class="bg-roast/40 border border-bean rounded-2xl p-4 sm:p-6">
+    <div class="bg-roast/40 border border-bean rounded-2xl p-4 sm:p-6 shadow-warm">
       <div id="chatLog" class="flex flex-col gap-3 h-[26rem] overflow-y-auto pr-1 mb-4">
         <div class="flex justify-start">
           <div class="max-w-[80%] bg-roast border border-bean rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm">
@@ -54,7 +54,7 @@ $pageTitle = 'Recommendation - Bean There';
         <input type="text" id="chatInput" name="message" maxlength="300" autocomplete="off"
           placeholder="e.g. something iced and not too sweet"
           class="grow bg-espresso border border-bean rounded-lg px-3.5 py-2.5 text-crema placeholder-foam focus:outline-none focus:border-caramel">
-        <button type="submit" class="bg-caramel text-espresso font-semibold px-4 sm:px-5 py-2.5 rounded-lg hover:bg-crema transition">
+        <button type="submit" aria-label="Send message" class="bg-caramel text-espresso font-semibold px-4 sm:px-5 py-2.5 rounded-lg hover:bg-crema transition">
           <i class="fa-solid fa-paper-plane"></i>
         </button>
       </form>

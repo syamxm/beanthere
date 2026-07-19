@@ -55,7 +55,7 @@ $pageTitle = 'Customise - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-2xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-2xl mx-auto w-full px-4 py-10">
     <a href="user_dashboard.php#<?= $fromSection ?>" class="text-foam hover:text-caramel text-sm mb-6 inline-block">
       <i class="fa-solid fa-arrow-left mr-1"></i> Back to menu
     </a>
@@ -123,29 +123,29 @@ $pageTitle = 'Customise - Bean There';
         <p class="text-sm text-foam mb-2">Syrups <span class="text-xs">(RM0.50 each)</span></p>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           <?php foreach (['Vanilla', 'Caramel', 'Hazelnut'] as $syrup): ?>
-            <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+            <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-3 bg-espresso cursor-pointer hover:border-caramel has-[:checked]:border-caramel has-[:checked]:bg-caramel/10 transition">
               <span><?= $syrup ?></span>
-              <input type="checkbox" name="syrups[]" value="<?= $syrup ?>" class="syrup accent-[#c49b63] w-4 h-4">
+              <input type="checkbox" name="syrups[]" value="<?= $syrup ?>" class="syrup w-4 h-4">
             </label>
           <?php endforeach; ?>
         </div>
 
         <p class="text-sm text-foam mb-2">Toppings <span class="text-xs">(RM1.00 each)</span></p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-3 bg-espresso cursor-pointer hover:border-caramel has-[:checked]:border-caramel has-[:checked]:bg-caramel/10 transition">
             <span>Whipped Cream</span>
-            <input type="checkbox" name="toppings[]" value="Whipped Cream" class="topping accent-[#c49b63] w-4 h-4">
+            <input type="checkbox" name="toppings[]" value="Whipped Cream" class="topping w-4 h-4">
           </label>
-          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-2.5 bg-espresso cursor-pointer hover:border-caramel">
+          <label class="flex justify-between items-center border border-bean rounded-lg px-4 py-3 bg-espresso cursor-pointer hover:border-caramel has-[:checked]:border-caramel has-[:checked]:bg-caramel/10 transition">
             <span>Espresso Jelly</span>
-            <input type="checkbox" name="toppings[]" value="Espresso Jelly" class="topping accent-[#c49b63] w-4 h-4">
+            <input type="checkbox" name="toppings[]" value="Espresso Jelly" class="topping w-4 h-4">
           </label>
         </div>
       <?php endif; ?>
 
       <div class="flex items-center justify-between border-t border-bean pt-4">
         <span class="text-foam">Total</span>
-        <span class="text-xl font-bold text-caramel">RM <span id="totalPrice"><?= number_format($item['price'], 2) ?></span></span>
+        <span class="text-xl font-bold text-caramel tabular-nums">RM <span id="totalPrice"><?= number_format($item['price'], 2) ?></span></span>
       </div>
 
       <button type="submit" id="addToCartBtn" class="w-full bg-caramel text-espresso font-semibold py-3 rounded-lg hover:bg-crema transition mt-4 disabled:opacity-60 disabled:cursor-not-allowed">Add to cart</button>

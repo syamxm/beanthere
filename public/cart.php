@@ -116,7 +116,7 @@ $pageTitle = 'Cart - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-6xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-6xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">Your cart</h1>
     <p class="text-foam text-sm mb-8">Tick the items you want to check out.</p>
 
@@ -144,7 +144,7 @@ $pageTitle = 'Cart - Bean There';
             <div class="cart-item bg-roast border border-bean rounded-2xl p-4 flex flex-wrap items-center gap-4 cursor-pointer transition"
               id="item-<?= $index ?>" data-cartid="<?= (int)$item['cartID'] ?>">
               <input type="checkbox" id="check-<?= $index ?>" onchange="updateSummary()"
-                class="accent-[#c49b63] w-5 h-5 shrink-0">
+                class="w-5 h-5 shrink-0">
               <img src="<?= htmlspecialchars($item['image_path']) ?>" alt=""
                 class="w-14 h-14 rounded-xl object-cover border border-bean shrink-0">
               <span class="item-info grow min-w-40" data-price="<?= (float)$item['total'] ?>" data-qty="<?= (int)$item['qty'] ?>">
@@ -152,35 +152,35 @@ $pageTitle = 'Cart - Bean There';
                 <?php if (!empty($details)): ?>
                   <span class="text-foam text-xs block"><?= htmlspecialchars(implode(' · ', $details)) ?></span>
                 <?php endif; ?>
-                <span class="text-caramel text-sm font-semibold">RM<?= number_format($item['total'], 2) ?></span>
+                <span class="text-caramel text-sm font-semibold tabular-nums">RM<?= number_format($item['total'], 2) ?></span>
               </span>
               <div class="flex items-center gap-2">
                 <form method="POST" class="inline">
                   <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="decrease">
-                  <button type="submit" class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold">−</button>
+                  <button type="submit" aria-label="Decrease quantity" class="w-10 h-10 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold">−</button>
                 </form>
                 <span class="w-6 text-center"><?= (int)$item['qty'] ?></span>
                 <form method="POST" class="inline">
                   <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="increase">
-                  <button type="submit" <?= $item['qty'] >= $item['stock'] ? 'disabled class="w-8 h-8 rounded-lg bg-bean text-foam opacity-50 cursor-not-allowed font-bold"' : 'class="w-8 h-8 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold"' ?>>+</button>
+                  <button type="submit" <?= $item['qty'] >= $item['stock'] ? 'disabled class="w-10 h-10 rounded-lg bg-bean text-foam opacity-50 cursor-not-allowed font-bold"' : 'class="w-10 h-10 rounded-lg bg-bean text-crema hover:bg-caramel hover:text-espresso transition font-bold"' ?> aria-label="Increase quantity">+</button>
                 </form>
                 <form method="POST" class="inline ml-1">
                   <?= csrf_field() ?>
                   <input type="hidden" name="cart_id" value="<?= (int)$item['cartID'] ?>">
                   <input type="hidden" name="action" value="remove">
                   <button type="submit" onclick="return confirm('Remove this item from your cart?')"
-                    class="w-8 h-8 rounded-lg text-red-400 border border-red-400/40 hover:bg-red-400 hover:text-espresso transition" aria-label="Remove item">×</button>
+                    class="w-10 h-10 rounded-lg text-red-400 border border-red-400/40 hover:bg-red-400 hover:text-espresso transition" aria-label="Remove item">×</button>
                 </form>
               </div>
             </div>
           <?php endforeach; ?>
         </div>
 
-        <aside class="bg-roast border border-bean rounded-2xl p-6 lg:sticky lg:top-24">
+        <aside class="bg-roast border border-bean rounded-2xl p-6 lg:sticky lg:top-24 shadow-warm">
           <h2 class="font-semibold text-lg mb-4">Order summary</h2>
 
           <?php if (count($vouchers) > 0): ?>
@@ -203,7 +203,7 @@ $pageTitle = 'Cart - Bean There';
             <option value="Delivery" data-charge="3">Delivery (RM 3.00)</option>
           </select>
 
-          <div id="summary" class="text-crema font-semibold border-t border-bean pt-4 mb-4 text-sm">Subtotal: RM 0.00</div>
+          <div id="summary" class="text-crema font-semibold border-t border-bean pt-4 mb-4 text-sm tabular-nums">Subtotal: RM 0.00</div>
 
           <form id="checkoutForm" method="POST" action="paymentMethod.php">
             <?= csrf_field() ?>

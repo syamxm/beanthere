@@ -126,7 +126,7 @@ $pageTitle = 'Rewards - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-4xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-4xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">Rewards</h1>
     <p class="text-foam text-sm mb-8">Earn 1 point per RM1 spent. Regulars level up and earn faster.</p>
 
@@ -140,7 +140,7 @@ $pageTitle = 'Rewards - Bean There';
       <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
           <p class="text-foam text-sm">Your balance</p>
-          <p class="text-3xl font-bold text-caramel"><?= number_format($balance) ?> <span class="text-base font-normal text-foam">points</span></p>
+          <p class="text-3xl font-bold text-caramel tabular-nums"><?= number_format($balance) ?> <span class="text-base font-normal text-foam">points</span></p>
         </div>
         <span class="text-sm font-semibold px-4 py-1.5 rounded-full bg-caramel text-espresso uppercase tracking-widest">
           <i class="fa-solid fa-medal mr-1"></i><?= htmlspecialchars($tier['name']) ?> · <?= rtrim(rtrim(number_format($tier['multiplier'], 2), '0'), '.') ?>x points
@@ -164,14 +164,14 @@ $pageTitle = 'Rewards - Bean There';
       </div>
     <?php endif; ?>
 
-    <h2 class="text-xl font-semibold text-caramel tracking-widest mb-6">REDEEM POINTS</h2>
+    <h2 class="text-2xl font-bold mb-6">Redeem points</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($rewards as $reward): ?>
-        <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl p-6 hover:border-caramel transition">
+        <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl p-6 hover:border-caramel hover:shadow-warm transition">
           <i class="fa-solid fa-ticket text-caramel text-3xl mb-4"></i>
           <h3 class="font-semibold text-lg mb-1"><?= htmlspecialchars($reward['name']) ?></h3>
           <p class="text-foam text-sm mb-4 grow"><?= number_format($reward['discount_value'], 0) ?>% off voucher, applied at checkout like any other.</p>
-          <p class="text-caramel font-semibold mb-4"><?= number_format($reward['points_cost']) ?> points</p>
+          <p class="text-caramel font-semibold mb-4 tabular-nums"><?= number_format($reward['points_cost']) ?> points</p>
           <?php if (!$hasMembership): ?>
             <a href="membership.php" class="w-full text-center border border-caramel text-caramel font-semibold py-2 rounded-lg hover:bg-caramel hover:text-espresso transition">Join membership to redeem</a>
           <?php elseif ($balance >= $reward['points_cost']): ?>

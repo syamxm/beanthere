@@ -60,7 +60,7 @@ $pageTitle = 'Your orders - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-3xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">Your orders</h1>
     <p class="text-foam text-sm mb-8">Status updates automatically as we work on your order.</p>
 
@@ -80,15 +80,15 @@ $pageTitle = 'Your orders - Bean There';
         <?php foreach ($groups as $group):
           $statusRaw = strtolower($group['status']);
           if (in_array($statusRaw, ['cancelled', 'payment failed'])) {
-            $badge = 'bg-red-400/20 text-red-300';
+            $badge = 'badge-danger';
           } elseif ($statusRaw === 'awaiting payment') {
-            $badge = 'bg-yellow-400/20 text-yellow-200';
+            $badge = 'badge-warning';
           } elseif (in_array($statusRaw, ['out for delivery', 'ready for pickup'])) {
-            $badge = 'bg-blue-400/20 text-blue-300';
+            $badge = 'badge-info';
           } elseif (in_array($statusRaw, ['delivered', 'done pickup'])) {
-            $badge = 'bg-green-400/20 text-green-300';
+            $badge = 'badge-success';
           } else {
-            $badge = 'bg-caramel/20 text-caramel';
+            $badge = 'badge-accent';
           }
           $orderTotal = $group['itemsTotal'] + $group['deliveryFee'];
           $showReceipt = !in_array($statusRaw, ['awaiting payment', 'payment failed'], true) && $group['checkoutID'] !== null;
@@ -106,18 +106,18 @@ $pageTitle = 'Your orders - Bean There';
               <?php foreach ($group['items'] as $item): ?>
                 <div class="flex justify-between">
                   <span><?= htmlspecialchars($item['name']) ?> <span class="text-foam">×<?= (int)$item['qty'] ?></span></span>
-                  <span class="text-foam">RM<?= number_format($item['total'], 2) ?></span>
+                  <span class="text-foam tabular-nums">RM<?= number_format($item['total'], 2) ?></span>
                 </div>
               <?php endforeach; ?>
               <?php if ($group['deliveryFee'] > 0): ?>
                 <div class="flex justify-between text-foam">
                   <span>Delivery fee</span>
-                  <span>RM<?= number_format($group['deliveryFee'], 2) ?></span>
+                  <span class="tabular-nums">RM<?= number_format($group['deliveryFee'], 2) ?></span>
                 </div>
               <?php endif; ?>
               <div class="flex justify-between font-semibold border-t border-bean pt-1.5 mt-1">
                 <span>Total</span>
-                <span class="text-caramel">RM<?= number_format($orderTotal, 2) ?></span>
+                <span class="text-caramel tabular-nums">RM<?= number_format($orderTotal, 2) ?></span>
               </div>
             </div>
             <?php if ($showReceipt): ?>
@@ -142,7 +142,7 @@ $pageTitle = 'Your orders - Bean There';
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 
-  <div id="readyToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-caramel text-espresso font-semibold px-6 py-3 rounded-full shadow-lg z-50">
+  <div id="readyToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-caramel text-espresso font-semibold px-6 py-3 rounded-full shadow-warm-lg z-50">
   </div>
 
   <script>
