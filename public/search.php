@@ -31,7 +31,7 @@ $pageTitle = 'Search - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-6xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-6xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-6">Search the menu</h1>
     <div class="relative max-w-xl mb-10">
       <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-foam"></i>

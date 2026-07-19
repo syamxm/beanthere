@@ -72,7 +72,7 @@ $pageTitle = 'Receipt - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-lg mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-lg mx-auto w-full px-4 py-10">
     <?php if ($notFound): ?>
       <div class="bg-roast border border-bean rounded-2xl p-10 text-center">
         <p class="text-lg font-semibold mb-2">Receipt not found</p>

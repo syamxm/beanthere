@@ -103,7 +103,7 @@ $sections = [
 <body class="bg-espresso text-crema font-sans min-h-screen">
   <?php include __DIR__ . '/../../src/partials/admin_nav.php'; ?>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
+  <main id="main" class="max-w-6xl mx-auto px-4 py-10">
     <h1 class="text-2xl font-bold mb-1">Dashboard</h1>
     <p class="text-foam text-sm mb-8">Signed in as <?= htmlspecialchars($_SESSION['current_admin']) ?></p>
 
@@ -112,7 +112,7 @@ $sections = [
     <?php endif; ?>
 
     <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
-      <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">STORE STATUS</h2>
+      <h2 class="text-lg font-bold mb-4">Store status</h2>
       <p class="text-sm mb-4">
         Right now the store is
         <span class="font-semibold <?= $storeStatus['open'] ? 'text-green-300' : 'text-red-300' ?>"><?= $storeStatus['open'] ? 'open' : 'closed' ?></span>
@@ -122,11 +122,11 @@ $sections = [
         <?= csrf_field() ?>
         <input type="hidden" name="form" value="store_status">
         <label class="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" name="hours_override" value="1" <?= $hoursOverride ? 'checked' : '' ?> class="accent-[#c49b63] w-4 h-4">
+          <input type="checkbox" name="hours_override" value="1" <?= $hoursOverride ? 'checked' : '' ?> class="w-4 h-4">
           <span>Manual override — ignore the schedule and use the toggle below</span>
         </label>
         <label class="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" name="store_open" value="1" <?= $storeOpen ? 'checked' : '' ?> class="accent-[#c49b63] w-4 h-4">
+          <input type="checkbox" name="store_open" value="1" <?= $storeOpen ? 'checked' : '' ?> class="w-4 h-4">
           <span>Store is open — customers can order</span>
         </label>
         <div>
@@ -139,7 +139,7 @@ $sections = [
     </div>
 
     <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
-      <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">OPENING HOURS</h2>
+      <h2 class="text-lg font-bold mb-4">Opening hours</h2>
       <p class="text-foam text-sm mb-4">Leave both fields blank to mark a day closed. The schedule controls ordering unless manual override is on.</p>
       <form method="POST" class="flex flex-col gap-3">
         <?= csrf_field() ?>
@@ -159,19 +159,19 @@ $sections = [
     </div>
 
     <div class="bg-roast border border-bean rounded-2xl p-6 mb-6">
-      <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4">LOYALTY</h2>
+      <h2 class="text-lg font-bold mb-4">Loyalty</h2>
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
         <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
-          <p class="text-2xl font-bold text-caramel"><?= number_format($loyaltyTotals['issued']) ?></p>
+          <p class="text-2xl font-bold text-caramel tabular-nums"><?= number_format($loyaltyTotals['issued']) ?></p>
           <p class="text-foam text-xs">points issued</p>
         </div>
         <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
-          <p class="text-2xl font-bold text-caramel"><?= number_format($loyaltyTotals['redeemed']) ?></p>
+          <p class="text-2xl font-bold text-caramel tabular-nums"><?= number_format($loyaltyTotals['redeemed']) ?></p>
           <p class="text-foam text-xs">points redeemed</p>
         </div>
         <?php foreach ($tierCounts as $tierName => $count): ?>
           <div class="bg-espresso border border-bean rounded-xl px-4 py-3">
-            <p class="text-2xl font-bold text-caramel"><?= number_format($count) ?></p>
+            <p class="text-2xl font-bold text-caramel tabular-nums"><?= number_format($count) ?></p>
             <p class="text-foam text-xs"><?= htmlspecialchars($tierName) ?> users</p>
           </div>
         <?php endforeach; ?>
@@ -181,7 +181,7 @@ $sections = [
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <?php foreach ($sections as $title => $links): ?>
         <div class="bg-roast border border-bean rounded-2xl p-6">
-          <h2 class="text-caramel font-semibold tracking-widest text-sm mb-4"><?= htmlspecialchars(strtoupper($title)) ?></h2>
+          <h2 class="text-lg font-bold mb-4"><?= htmlspecialchars($title) ?></h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <?php foreach ($links as [$href, $label, $icon]): ?>
               <a href="<?= htmlspecialchars($href) ?>" class="flex items-center gap-3 bg-espresso border border-bean rounded-xl px-4 py-3 hover:border-caramel transition">

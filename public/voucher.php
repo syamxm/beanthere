@@ -53,7 +53,7 @@ $pageTitle = 'My vouchers - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-3xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-3xl mx-auto w-full px-4 py-10">
     <h1 class="text-3xl font-bold mb-2">My vouchers</h1>
     <p class="text-foam text-sm mb-8">Apply them at checkout for a discount on your order.</p>
 

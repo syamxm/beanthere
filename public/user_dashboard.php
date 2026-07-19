@@ -47,6 +47,7 @@ $pageTitle = 'Menu - Bean There';
 <body class="bg-espresso text-crema font-sans">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
+  <main id="main">
   <div class="max-w-6xl mx-auto px-4 pt-12">
     <h1 class="text-3xl md:text-4xl font-bold mb-2">The menu</h1>
     <p class="text-foam mb-4">Every drink made to order. Not sure? <a href="recommendation.php" class="text-caramel underline hover:text-crema">Let us recommend one</a>.</p>
@@ -56,13 +57,13 @@ $pageTitle = 'Menu - Bean There';
   </div>
 
   <section id="menu" class="max-w-6xl mx-auto px-4 py-8">
-    <h2 class="text-xl font-semibold text-caramel tracking-widest mb-6">DRINKS</h2>
+    <h2 class="text-2xl font-bold mb-6">Drinks</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($drinks as $row): ?>
         <form action="customize.php" method="post" class="group">
           <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
           <input type="hidden" name="from_section" value="menu">
-          <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
+          <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel hover:shadow-warm transition">
             <div class="relative">
               <img loading="lazy" src="<?= htmlspecialchars($row['image_path']) ?>" alt="<?= htmlspecialchars($row['name']) ?>"
                 class="w-full h-44 object-cover">
@@ -76,9 +77,9 @@ $pageTitle = 'Menu - Bean There';
               <div class="flex items-start justify-between gap-2 mb-1">
                 <h3 class="font-semibold"><?= htmlspecialchars($row['name']) ?></h3>
                 <div class="text-right whitespace-nowrap">
-                  <span class="text-caramel font-semibold">RM<?= number_format($row['price'], 2) ?></span>
+                  <span class="text-caramel font-semibold tabular-nums">RM<?= number_format($row['price'], 2) ?></span>
                   <?php if (!empty($row['old_price']) && $row['old_price'] > $row['price']): ?>
-                    <span class="text-foam line-through text-sm ml-1">RM<?= number_format($row['old_price'], 2) ?></span>
+                    <span class="text-foam line-through text-sm ml-1 tabular-nums">RM<?= number_format($row['old_price'], 2) ?></span>
                   <?php endif; ?>
                 </div>
               </div>
@@ -104,20 +105,20 @@ $pageTitle = 'Menu - Bean There';
   </section>
 
   <section id="products" class="max-w-6xl mx-auto px-4 py-8">
-    <h2 class="text-xl font-semibold text-caramel tracking-widest mb-6">BEANS FOR HOME</h2>
+    <h2 class="text-2xl font-bold mb-6">Beans for home</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <?php foreach ($beans as $row): ?>
         <form action="add_to_cart.php" method="post">
           <?= csrf_field() ?>
           <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
           <input type="hidden" name="from_section" value="products">
-          <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel transition">
+          <div class="h-full flex flex-col bg-roast border border-bean rounded-2xl overflow-hidden hover:border-caramel hover:shadow-warm transition">
             <img loading="lazy" src="<?= htmlspecialchars($row['image_path']) ?>" alt="<?= htmlspecialchars($row['name']) ?>"
               class="w-full h-44 object-cover">
             <div class="p-5 flex flex-col grow">
               <div class="flex items-start justify-between gap-2 mb-1">
                 <h3 class="font-semibold"><?= htmlspecialchars($row['name']) ?></h3>
-                <span class="text-caramel font-semibold whitespace-nowrap">RM<?= number_format($row['price'], 2) ?></span>
+                <span class="text-caramel font-semibold whitespace-nowrap tabular-nums">RM<?= number_format($row['price'], 2) ?></span>
               </div>
               <p class="text-foam text-sm mb-4 grow"><?= htmlspecialchars($row['description'] ?? '') ?></p>
               <?php if ((int)$row['stock'] > 0): ?>
@@ -131,6 +132,8 @@ $pageTitle = 'Menu - Bean There';
       <?php endforeach; ?>
     </div>
   </section>
+
+  </main>
 
   <?php include __DIR__ . '/../src/partials/footer.php'; ?>
 </body>

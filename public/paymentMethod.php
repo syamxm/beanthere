@@ -208,7 +208,7 @@ $pageTitle = 'Review order - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow max-w-xl mx-auto w-full px-4 py-10">
+  <main id="main" class="grow max-w-xl mx-auto w-full px-4 py-10">
     <a href="cart.php" class="text-foam hover:text-caramel text-sm mb-6 inline-block">
       <i class="fa-solid fa-arrow-left mr-1"></i> Back to cart
     </a>

@@ -173,7 +173,7 @@ $pageTitle = 'My profile - Bean There';
 <body class="bg-espresso text-crema font-sans min-h-screen flex flex-col">
   <?php include __DIR__ . '/../src/partials/nav.php'; ?>
 
-  <main class="grow flex items-center justify-center px-4 py-16">
+  <main id="main" class="grow flex items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
       <h1 class="text-2xl font-bold mb-4">My profile</h1>
 
