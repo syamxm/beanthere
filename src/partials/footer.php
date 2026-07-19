@@ -6,7 +6,7 @@
     </div>
     <div>
       <p class="text-crema font-semibold mb-3">Visit us</p>
-      <p class="text-foam text-sm leading-relaxed">12 Jalan Kopi, Shah Alam<br>Mon–Sun, 8am–10pm<br>hello@beanthere.example</p>
+      <p class="text-foam text-sm leading-relaxed">12 Jalan Kopi, Shah Alam<br>Mon-Sun, 8am-10pm<br>hello@beanthere.example</p>
     </div>
     <div>
       <p class="text-crema font-semibold mb-3">Explore</p>

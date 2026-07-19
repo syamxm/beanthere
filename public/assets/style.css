@@ -11,6 +11,7 @@
   --c-crema: 237 228 211;
   --c-foam: 156 139 116;
   --c-caramel: 196 155 99;
+  --c-shadow: 8 5 2;
 }
 
 html[data-theme="strawberry-latte"] {
@@ -20,6 +21,7 @@ html[data-theme="strawberry-latte"] {
   --c-crema: 245 230 234;
   --c-foam: 196 154 166;
   --c-caramel: 232 116 154;
+  --c-shadow: 18 8 11;
 }
 
 html[data-theme="morning-brew"] {
@@ -29,6 +31,7 @@ html[data-theme="morning-brew"] {
   --c-crema: 43 29 16;
   --c-foam: 113 98 76;
   --c-caramel: 143 90 31;
+  --c-shadow: 92 74 48;
 }
 
 html[data-theme="matcha"] {
@@ -38,6 +41,7 @@ html[data-theme="matcha"] {
   --c-crema: 233 240 228;
   --c-foam: 147 168 148;
   --c-caramel: 158 201 127;
+  --c-shadow: 5 10 7;
 }
 
 @font-face {
@@ -78,6 +82,36 @@ html[data-theme="matcha"] {
   font-weight: 700;
   font-display: swap;
   src: url('fonts/poppins-700.woff2') format('woff2');
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--c-caramel));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: rgb(var(--c-caramel));
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+button,
+a,
+select,
+input[type="checkbox"] {
+  transition-property: color, background-color, border-color, transform, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .typing-dot {
@@ -139,16 +173,16 @@ html[data-theme="matcha"] {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background: #241a12;
-  border: 1px solid #3a2a1a;
+  background: rgb(var(--c-roast));
+  border: 1px solid rgb(var(--c-bean));
   border-radius: 8px;
   overflow: hidden;
   font-size: 0.875rem;
 }
 
 .admin-table th {
-  background: #16100b;
-  color: #c49b63;
+  background: rgb(var(--c-espresso));
+  color: rgb(var(--c-caramel));
   text-align: left;
   padding: 10px 12px;
   font-weight: 600;
@@ -156,18 +190,19 @@ html[data-theme="matcha"] {
 
 .admin-table td {
   padding: 10px 12px;
-  color: #ede4d3;
-  border-top: 1px solid #3a2a1a;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--c-crema));
+  border-top: 1px solid rgb(var(--c-bean));
   vertical-align: middle;
 }
 
 .admin-table tr:hover td {
-  background: #2b1f14;
+  background: rgb(var(--c-crema) / 0.04);
 }
 
 .admin-form {
-  background: #241a12;
-  border: 1px solid #3a2a1a;
+  background: rgb(var(--c-roast));
+  border: 1px solid rgb(var(--c-bean));
   border-radius: 12px;
   padding: 24px;
   max-width: 560px;
@@ -176,7 +211,7 @@ html[data-theme="matcha"] {
 
 .admin-form label {
   display: block;
-  color: #9c8b74;
+  color: rgb(var(--c-foam));
   font-size: 0.875rem;
   margin: 14px 0 6px;
 }
@@ -186,9 +221,9 @@ html[data-theme="matcha"] {
 .admin-form textarea {
   width: 100%;
   padding: 10px 12px;
-  background: #16100b;
-  color: #ede4d3;
-  border: 1px solid #3a2a1a;
+  background: rgb(var(--c-espresso));
+  color: rgb(var(--c-crema));
+  border: 1px solid rgb(var(--c-bean));
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.9rem;
@@ -197,15 +232,15 @@ html[data-theme="matcha"] {
 .admin-form input:focus,
 .admin-form select:focus,
 .admin-form textarea:focus {
-  outline: 2px solid #c49b63;
+  outline: 2px solid rgb(var(--c-caramel));
   outline-offset: 0;
-  border-color: #c49b63;
+  border-color: rgb(var(--c-caramel));
 }
 
 .btn-caramel {
   display: inline-block;
-  background: #c49b63;
-  color: #16100b;
+  background: rgb(var(--c-caramel));
+  color: rgb(var(--c-espresso));
   font-weight: 600;
   padding: 8px 18px;
   border: none;
@@ -217,14 +252,14 @@ html[data-theme="matcha"] {
 }
 
 .btn-caramel:hover {
-  background: #ede4d3;
+  background: rgb(var(--c-crema));
 }
 
 .btn-outline {
   display: inline-block;
   background: transparent;
-  color: #c49b63;
-  border: 1px solid #c49b63;
+  color: rgb(var(--c-caramel));
+  border: 1px solid rgb(var(--c-caramel));
   padding: 7px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -234,8 +269,8 @@ html[data-theme="matcha"] {
 }
 
 .btn-outline:hover {
-  background: #c49b63;
-  color: #16100b;
+  background: rgb(var(--c-caramel));
+  color: rgb(var(--c-espresso));
 }
 
 .btn-danger {
@@ -253,12 +288,12 @@ html[data-theme="matcha"] {
 
 .btn-danger:hover {
   background: #d9776b;
-  color: #16100b;
+  color: rgb(var(--c-espresso));
 }
 
 .flash-message {
   text-align: center;
-  color: #c49b63;
+  color: rgb(var(--c-caramel));
   font-weight: 600;
   margin: 16px auto;
 }
