@@ -17,6 +17,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
       },
       boxShadow: {
         'warm': '0 10px 30px -12px rgb(var(--c-shadow) / 0.55)',

@@ -84,6 +84,19 @@ html[data-theme="matcha"] {
   src: url('fonts/poppins-700.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('fonts/fraunces.woff2') format('woff2-variations');
+}
+
+.font-serif {
+  font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 0;
+  letter-spacing: -0.02em;
+}
+
 :focus-visible {
   outline: 2px solid rgb(var(--c-caramel));
   outline-offset: 2px;
