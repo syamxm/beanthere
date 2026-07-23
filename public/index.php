@@ -450,7 +450,7 @@ $pageTitle = 'Bean There - Small-batch coffee';
         entries.forEach(function (entry) {
           if (entry.isIntersecting && byId[entry.target.id]) setActive(entry.target.id);
         });
-      }, { threshold: 0.5, rootMargin: '-40% 0px -40% 0px' });
+      }, { threshold: 0, rootMargin: '-45% 0px -45% 0px' });
 
       document.querySelectorAll('.snap-section').forEach(function (section) { io.observe(section); });
     })();
