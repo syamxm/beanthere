@@ -19,6 +19,7 @@ RUN tailwindcss -c tailwind.config.js -i src/tailwind.input.css -o /build/tailwi
 FROM php:8.2-apache
 
 RUN apt-get update \
+    && apt-get install -y --only-upgrade linux-libc-dev \
     && apt-get install -y --no-install-recommends libjpeg-dev libpng-dev libwebp-dev \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
