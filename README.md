@@ -1,4 +1,5 @@
 # BeanThere ☕
+# TODO : Renew burger menu, add icons and improve # mobile view aspects
 
 A coffee shop web app with online ordering, loyalty rewards, an AI drink
 recommender, and a full DevSecOps pipeline — built as a portfolio project in
