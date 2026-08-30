@@ -30,13 +30,13 @@ function nav_link_class(string $href, string $current): string
   <div class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
     <a href="index.php" class="text-xl font-bold tracking-[0.25em] text-caramel">BEAN<span class="text-crema">THERE</span></a>
 
-    <button id="navToggle" class="md:hidden text-crema text-2xl w-11 h-11 -mr-2" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
-      <i class="fa-solid fa-bars"></i>
+    <button id="navToggle" class="nav-burger md:hidden" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span>
     </button>
 
-    <div id="navLinks" class="hidden md:flex absolute md:static top-full left-0 w-full md:w-auto
+    <div id="navLinks" class="nav-menu md:flex md:static md:w-auto
         flex-col md:flex-row items-start md:items-center gap-4 md:gap-6
-        bg-espresso md:bg-transparent border-b border-bean md:border-0 px-4 py-4 md:p-0">
+        md:bg-transparent md:border-0 md:p-0">
       <a href="user_dashboard.php" class="<?= nav_link_class('user_dashboard.php', $navCurrentPage) ?>">Menu</a>
       <a href="recommendation.php" class="<?= nav_link_class('recommendation.php', $navCurrentPage) ?>">Recommend Me</a>
       <a href="search.php" class="<?= nav_link_class('search.php', $navCurrentPage) ?>">Search</a>
@@ -72,17 +72,34 @@ function nav_link_class(string $href, string $current): string
         </div>
       <?php else: ?>
         <a href="user_login.php" class="text-crema hover:text-caramel">Log in</a>
-        <a href="user_register.php" class="bg-caramel text-espresso font-semibold px-4 py-1.5 rounded-full hover:bg-crema transition">Sign up</a>
+        <a href="user_register.php" class="nav-cta bg-caramel text-espresso font-semibold px-4 py-1.5 rounded-full hover:bg-crema transition">Sign up</a>
       <?php endif; ?>
     </div>
   </div>
 </nav>
 <script>
-  document.getElementById('navToggle').addEventListener('click', function () {
-    var links = document.getElementById('navLinks');
-    links.classList.toggle('hidden');
-    links.classList.toggle('flex');
-    this.setAttribute('aria-expanded', String(!links.classList.contains('hidden')));
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+
+  function setNavMenu(open) {
+    navToggle.classList.toggle('is-open', open);
+    navLinks.classList.toggle('is-open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+    document.body.style.overflowY = open ? 'hidden' : '';
+  }
+
+  navToggle.addEventListener('click', function () {
+    setNavMenu(!navLinks.classList.contains('is-open'));
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !navLinks.classList.contains('is-open')) return;
+    setNavMenu(false);
+    navToggle.focus();
+  });
+
+  window.matchMedia('(min-width: 768px)').addEventListener('change', function (e) {
+    if (e.matches) setNavMenu(false);
   });
   var accountToggle = document.getElementById('accountToggle');
   if (accountToggle) {
