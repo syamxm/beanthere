@@ -323,3 +323,114 @@ html[data-theme="morning-brew"] .badge-success { color: #15803d; }
   font-weight: 600;
   margin: 16px auto;
 }
+
+/* Mobile navigation: two-bar burger that morphs into an X, and a full-height
+   menu whose items stagger in. Kept here because the nav overlay needs
+   transitions and nth-child delays that utility classes can't express. */
+
+.nav-burger {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: -0.5rem;
+  color: rgb(var(--c-crema));
+}
+
+.nav-burger span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.35rem;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    translate 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    rotate 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.nav-burger span:first-child { translate: -50% calc(-50% - 4px); }
+.nav-burger span:last-child  { translate: -50% calc(-50% + 4px); }
+
+.nav-burger.is-open { color: rgb(var(--c-caramel)); }
+.nav-burger.is-open span:first-child { translate: -50% -50%; rotate: 45deg; }
+.nav-burger.is-open span:last-child  { translate: -50% -50%; rotate: -45deg; }
+
+@media (max-width: 767px) {
+  .nav-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 2rem 1.5rem 3rem;
+    overflow-y: auto;
+    background: rgb(var(--c-espresso) / 0.98);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 320ms cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 320ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .nav-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-menu > * {
+    opacity: 0;
+    translate: 0 1.25rem;
+    transition:
+      opacity 420ms cubic-bezier(0.32, 0.72, 0, 1),
+      translate 420ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .nav-menu.is-open > * {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .nav-menu > *:nth-child(1) { transition-delay: 60ms; }
+  .nav-menu > *:nth-child(2) { transition-delay: 115ms; }
+  .nav-menu > *:nth-child(3) { transition-delay: 170ms; }
+  .nav-menu > *:nth-child(4) { transition-delay: 225ms; }
+  .nav-menu > *:nth-child(5) { transition-delay: 280ms; }
+  .nav-menu > *:nth-child(6) { transition-delay: 335ms; }
+  .nav-menu > *:nth-child(7) { transition-delay: 390ms; }
+  .nav-menu > *:nth-child(8) { transition-delay: 445ms; }
+  .nav-menu > *:nth-child(9) { transition-delay: 500ms; }
+
+  .nav-menu > a:not(.nav-cta),
+  .nav-menu > form > button,
+  .nav-menu #accountToggle {
+    display: block;
+    width: 100%;
+    padding: 0.9rem 0;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.6rem;
+    line-height: 1.15;
+    border-top: 1px solid rgb(var(--c-bean));
+  }
+
+  .nav-menu > .nav-cta {
+    margin-top: 1.5rem;
+    padding-block: 0.85rem;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger span,
+  .nav-menu,
+  .nav-menu > * {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+
+  .nav-menu > * { translate: 0 0; }
+}
